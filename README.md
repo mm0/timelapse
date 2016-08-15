@@ -6,8 +6,7 @@ Use AWS infrastructure for timelapse videos and presentations.
 
 1. Images are submitted to an S3 bucket.
 2. A Lambda function is triggered on new image upload
-2.1. The image is registered in a DB
-2.2. The image is resized
+2.2. The image is processed (cropped, resized, exif cleaned up, etc)
 2.3. The image is added to the timelapse video
 3. A rules-based workflow is triggered for further processing
 4. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
@@ -16,23 +15,44 @@ Use AWS infrastructure for timelapse videos and presentations.
 
 ### S3 storage
 
-Cameras upload the original full size images to an S3 bucket. Every camera has its own bucket. The path inside the bucket (object prefix) is configurable.
+Cameras upload the original full size images to an S3 bucket. Every camera has its own path within a bucket. The path inside the bucket (object prefix) is configurable.
 
-* **bucket name**: configurable
-* **file_names**: it can be anything, as long as it's unique, e.g. _d4b000dc-5920-11e6-8b77-86f30ca893d3.jpg_
+```
+    -bucket
+        config.txt
+        -cam1
+            config.txt
+            -idx
+                last.txt
+                last100.txt
+                today.txt
+                24hr.txt
+                7days.txt
+                30days.txt
+            -full
+            -exif
+            -resized1
+            -resized2
+            -resized3
+        -cam2
+        ...
+```
+
+* **bucket name**: can be any name. A λ-function assigned to the bucket will extract the bucket name and the cam prefix from the object name it was given.
+* **config.txt**: a config file, which can be nested. The deeper level config file overwrites the higher level one.
+* **file names**: uploaded file names must follow ISO 8601 + the file type in this format (YYYYMMDDThhmmss.ssss.jpg, e.g. 20160815T170001.050.jpg). The date/time is recorded by the camera at the moment of the image capture. It may be different from the exif data.
 * **object properties**: mimetype=image/jpg, http caching=forever
+* **full**: the folder for original files. This is where the cameras upload them in the first place.
+* **idx**: a folder with indexes maintained by the λ-function as simple list of URLs, one per line
+* **exif**: a folder with with exif data files extracted from the originals. The file names must match those of the original file, except the extension (.txt) and the mime type is text/text, http caching=forever
+* **resizedX**: a folder with resized images with the same file names as the original, http caching=forever
 
-### DB
+The camera app knows the bucket name, AWS credentials and its name. It will construct the object name in the format: `[bucketname]/[cameraname]/full/[filename].jpg` and send it to S3. The λ-function will be triggered by the upload and will process the file.
 
-Every uploaded image is registed in the DB. Every bucket has its own DB with the same name.
+Theoretically, there is no need to pre-create the camera folder if the AWS credentials allow for bucket-wide uploads.
 
-* **Primary key**: ???
-* **Fields**: file name, exif, size, width, height, ...
+The λ-function creates the folders it needs on the fly. There is no need to pre-create them, unless it is required for access control purposes.
 
-DB search use cases: 
-* get image details by its file name
-* get image details by its timestamp
-* get list of images within a time range
 
 ### Image resizing
 
@@ -40,17 +60,27 @@ Images are resized to multiple smaller sizes as per this section of the config f
 
     {
       "resize": [
-        {"folder": "fhd", "width": 1920, "height": 1080}
-        {"folder": "hd", "width": 1080, "height": 720}
-        {"folder": "small", "width": 500, "height": 500}
-      ]
+        {"folder": "resized/fhd", "width": 1920, "height": 1080, "compression": 50}
+        {"folder": "resized/hd", "width": 1080, "height": 720, "compression": 50}
+        {"folder": "resized/small", "width": 500, "height": 500, "compression": 50}
+      ],
+      "crop": {"top": 100, "left": 100,	"width": 300, "height": 300}
     }
+
+* **folder**: folder name for the resized image to be put in, relative to the camera root. It's just an object prefix in the context of S3.
+* **width**, **height**: the maximum size in pixels for the image. It may not be proportional to the image which has to fit into this bounding box without cropping.
+* **compression** - JPEG compression / quality level, 1 - 100, where 1 is the lowest and 100 is uncompressed.
+* **crop** - describes the box that has to be cropped from the original image before resizing.
+
+When a new file is placed into the bucket the λ-function should check if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. 
 
 ### Video
 
 Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file.
 
 ### Getting a list of images for a slideshow
+
+The most commonly requested image sets are stored in `[cam-name]/idx` folder as absolute image URLs, one per line.
 
 An HTTP request can be made to a lambda function to get a list of files for a date/time range. The HTTP REST API is configured via _Amazon API Gateway_.
 
