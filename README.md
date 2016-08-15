@@ -22,17 +22,18 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
         config.txt
         -cam1
             config.txt
-            -idx
-                last.txt
-                last100.txt
-                today.txt
-                24hr.txt
-                7days.txt
-                30days.txt
             -full
             -exif
             -resized1
+                -idx
+                    last.txt
+                    last100.txt
+                    today.txt
+                    24hr.txt
+                    7days.txt
+                    30days.txt
             -resized2
+                -idx
             -resized3
         -cam2
         ...
