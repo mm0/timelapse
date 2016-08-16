@@ -24,17 +24,18 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
             config.txt
             -full
             -exif
-            -resized1
-                -idx
-                    last.txt
-                    last100.txt
-                    today.txt
-                    24hr.txt
-                    7days.txt
-                    30days.txt
-            -resized2
-                -idx
-            -resized3
+            -resized
+                -[size name 1]
+                    -idx
+                        last.txt
+                        last100.txt
+                        today.txt
+                        24hr.txt
+                        7days.txt
+                        30days.txt
+                -[size name 2]
+                    -idx
+                -[size name 3]
         -cam2
         ...
 ```
@@ -44,9 +45,9 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 * **file names**: uploaded file names must follow ISO 8601 + the file type in this format (YYYYMMDDThhmmss.ssss.jpg, e.g. 20160815T170001.050.jpg). The date/time is recorded by the camera at the moment of the image capture. It may be different from the exif data.
 * **object properties**: mimetype=image/jpg, http caching=forever
 * **full**: the folder for original files. This is where the cameras upload them in the first place.
-* **idx**: a folder with indexes maintained by the λ-function as simple list of URLs, one per line
+* **idx**: a folder with indexes maintained by the λ-function as simple list of URLs, one per line. Set http caching to expire immediately.
 * **exif**: a folder with with exif data files extracted from the originals. The file names must match those of the original file, except the extension (.txt) and the mime type is text/text, http caching=forever
-* **resizedX**: a folder with resized images with the same file names as the original, http caching=forever
+* **resized**: a folder with resized images with the same file names as the original. The images are grouped in subfolders as per the config file. Set http caching=forever
 
 The camera app knows the bucket name, AWS credentials and its name. It will construct the object name in the format: `[bucketname]/[cameraname]/full/[filename].jpg` and send it to S3. The λ-function will be triggered by the upload and will process the file.
 
@@ -54,6 +55,24 @@ Theoretically, there is no need to pre-create the camera folder if the AWS crede
 
 The λ-function creates the folders it needs on the fly. There is no need to pre-create them, unless it is required for access control purposes.
 
+#### Bucket policies
+
+The goal is to grant public access to all objects in `resized` folder. The λ-function has its own set of policies.
+
+```
+{
+	"Id": "Hubsy-Public-Access-Policy",
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": "s3:GetObject",
+			"Effect": "Allow",
+			"Resource": "arn:aws:s3:::BUCKET-NAME/*resized*",
+			"Principal": "*"
+		}
+	]
+}
+```
 
 ### Image resizing
 
