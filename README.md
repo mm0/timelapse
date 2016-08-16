@@ -57,7 +57,7 @@ The λ-function creates the folders it needs on the fly. There is no need to pre
 
 #### Bucket policies
 
-The goal is to grant public access to all objects in `resized` folder. The λ-function has its own set of policies.
+The goal is to grant public access to all objects in `resized` folder.
 
 ```
 {
@@ -71,6 +71,30 @@ The goal is to grant public access to all objects in `resized` folder. The λ-fu
 			"Principal": "*"
 		}
 	]
+}
+```
+
+The λ-function has its own set of policies. It should be able to read the entire contents of the bucket, but write only into `resized` folder. This policy has to be set in IAM and attached to the role used for the function.
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::BUCKET-NAME/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": "arn:aws:s3:::BUCKET-NAME/*resized*"
+        }
+    ]
 }
 ```
 
