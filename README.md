@@ -67,7 +67,7 @@ The goal is to grant public access to all objects in `resized` folder.
 		{
 			"Action": "s3:GetObject",
 			"Effect": "Allow",
-			"Resource": "arn:aws:s3:::BUCKET-NAME/*resized*",
+			"Resource": "arn:aws:s3:::BUCKET-NAME/*/resized/*",
 			"Principal": "*"
 		}
 	]
@@ -92,7 +92,7 @@ The λ-function has its own set of policies. It should be able to read the entir
             "Action": [
                 "s3:PutObject"
             ],
-            "Resource": "arn:aws:s3:::BUCKET-NAME/*resized*"
+            "Resource": "arn:aws:s3:::BUCKET-NAME/*/resized/*"
         }
     ]
 }
