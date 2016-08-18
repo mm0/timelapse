@@ -11,6 +11,24 @@ Use AWS infrastructure for timelapse videos and presentations.
 3. A rules-based workflow is triggered for further processing
 4. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
 
+## Setup
+
+```bash
+npm install
+```
+Set your AWS configuration in `.env` file.
+
+To test run locally:
+```bash
+npm start
+```
+
+To deploy on AWS:
+```bash
+npm run deploy
+```
+
+
 ## Implementation details
 
 ### S3 storage
@@ -116,7 +134,7 @@ Images are resized to multiple smaller sizes as per this section of the config f
 * **compression** - JPEG compression / quality level, 1 - 100, where 1 is the lowest and 100 is uncompressed.
 * **crop** - describes the box that has to be cropped from the original image before resizing.
 
-When a new file is placed into the bucket the λ-function should check if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. 
+When a new file is placed into the bucket the λ-function should check if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results.
 
 ### Video
 
@@ -129,4 +147,3 @@ The most commonly requested image sets are stored in `[cam-name]/idx` folder as 
 An HTTP request can be made to a lambda function to get a list of files for a date/time range. The HTTP REST API is configured via _Amazon API Gateway_.
 
 **Parameters**: `dateBefore`, `dateAfter`, `count`.
-

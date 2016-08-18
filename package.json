@@ -1,0 +1,35 @@
+{
+  "name": "hubsy-timlapse",
+  "version": "1.0.0",
+  "description": "Use AWS infrastructure for timelapse videos and presentations.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hubsy-io/timelapse.git"
+  },
+  "keywords": [
+    "hubsy",
+    "timelapse",
+    "lambda"
+  ],
+  "author": "Ehsan Afzali",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hubsy-io/timelapse/issues"
+  },
+  "homepage": "https://github.com/hubsy-io/timelapse#readme",
+  "dependencies": {
+    "imagemagick": "^0.1.3"
+  },
+  "devDependencies": {
+    "node-lambda": "^0.8.7"
+  },
+  "scripts": {
+    "postinstall":  "node-lambda setup",
+    "start": "node-lambda run",
+    "deploy": "node-lambda deploy"
+  }
+}
