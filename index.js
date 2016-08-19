@@ -16,6 +16,42 @@ function parsePath(path) {
   };
 }
 
+function configNoSuchKeyHandler(err) {
+  if (err.code === 'NoSuchKey') {
+    return { Body: '{}' };
+  }
+  throw err;
+}
+
+function parseJsonBody(data) {
+  return JSON.parse(data.Body.toString());
+}
+
+function getObject(params) {
+  return new Promise((resolve, reject) => {
+    s3.getObject(params, (err, res) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(res);
+      }
+    });
+  });
+}
+
+function getConfig(event) {
+  return Promise.all([
+    getObject({
+      Bucket: event.bucket.name,
+      Key: 'config.json',
+    }).catch(configNoSuchKeyHandler).then(parseJsonBody),
+    getObject({
+      Bucket: event.bucket.name,
+      Key: `${event.image.cam}/config.json`,
+    }).catch(configNoSuchKeyHandler).then(parseJsonBody),
+  ]).then(configs => Object.assign({}, configs[0], configs[1]));
+}
+
 function extractExif(event) {
   return new Promise((resolve, reject) => {
     gm(TMP_PATH).identify('%[EXIF:*]', (err, data) => {
@@ -52,7 +88,11 @@ function processImage(e) {
     stream.on('finish', res => resolve(res));
     stream.on('error', err => reject(err));
   })
-  .then(() => extractExif(event))
+  .then(() => getConfig(event))
+  .then(config => {
+    console.log('using config', config);
+    return extractExif(event);
+  })
   .then(() => true);
 }
 
