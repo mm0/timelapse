@@ -37,9 +37,9 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 
 ```
     -bucket
-        config.txt
+        config.json
         -cam1
-            config.txt
+            config.json
             -full
             -exif
             -resized
@@ -59,7 +59,7 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 ```
 
 * **bucket name**: can be any name. A λ-function assigned to the bucket will extract the bucket name and the cam prefix from the object name it was given.
-* **config.txt**: a config file, which can be nested. The deeper level config file overwrites the higher level one.
+* **config.json**: a config file, which can be nested. The deeper level config file overwrites the higher level one.
 * **file names**: uploaded file names must follow ISO 8601 + the file type in this format (YYYYMMDDThhmmss.ssss.jpg, e.g. 20160815T170001.050.jpg). The date/time is recorded by the camera at the moment of the image capture. It may be different from the exif data.
 * **object properties**: mimetype=image/jpg, http caching=forever
 * **full**: the folder for original files. This is where the cameras upload them in the first place.

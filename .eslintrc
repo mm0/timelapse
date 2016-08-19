@@ -1,0 +1,4 @@
+extends: airbnb
+rules:
+  no-console: off
+  strict: off
