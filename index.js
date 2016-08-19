@@ -54,7 +54,7 @@ function getConfig(event) {
 
 function extractExif(event) {
   return new Promise((resolve, reject) => {
-    gm(TMP_PATH).identify('%[EXIF:*]', (err, data) => {
+    gm(event.tmpFile).identify('%[EXIF:*]', (err, data) => {
       if (err) {
         return reject(err);
       }
@@ -76,14 +76,28 @@ function extractExif(event) {
   }));
 }
 
+function cropImage(event, crop) {
+  return new Promise((resolve, reject) => {
+    gm(event.tmpFile)
+    .crop(crop.width, crop.height, crop.left, crop.top)
+    .write(event.tmpFile, err => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve();
+    });
+  });
+}
+
 function processImage(e) {
   const event = Object.assign(e);
   event.image = parsePath(event.object.key);
+  event.tmpFile = TMP_PATH;
   return new Promise((resolve, reject) => {
     const stream = s3.getObject({
       Bucket: event.bucket.name,
       Key: event.object.key,
-    }).createReadStream().pipe(fs.createWriteStream(TMP_PATH));
+    }).createReadStream().pipe(fs.createWriteStream(event.tmpFile));
 
     stream.on('finish', res => resolve(res));
     stream.on('error', err => reject(err));
@@ -91,7 +105,13 @@ function processImage(e) {
   .then(() => getConfig(event))
   .then(config => {
     console.log('using config', config);
-    return extractExif(event);
+    return extractExif(event)
+    .then(() => {
+      if (config.crop) {
+        return cropImage(event, config.crop);
+      }
+      return true;
+    });
   })
   .then(() => true);
 }
