@@ -6,6 +6,7 @@ const AWS = require('aws-sdk');
 
 const TMP_PATH = '/tmp/img.jpg';
 const FOREVER = '31536000';
+const DEFAULT_COMPRESSION = 0;
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
 function parsePath(path) {
@@ -89,6 +90,27 @@ function cropImage(event, crop) {
   });
 }
 
+function resizeImage(event, resize) {
+  return new Promise((resolve, reject) => {
+    const stream = gm(event.tmpFile)
+    .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
+    .quality('200', 100 - (resize.compression || DEFAULT_COMPRESSION))
+    .noProfile()
+    .stream();
+
+    s3.upload({
+      Bucket: event.bucket.name,
+      Key: `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
+      Body: stream,
+    }).send((err, data) => {
+      if (err) {
+        return reject(err);
+      }
+      return resolve(data);
+    });
+  });
+}
+
 function processImage(e) {
   const event = Object.assign(e);
   event.image = parsePath(event.object.key);
@@ -109,6 +131,12 @@ function processImage(e) {
     .then(() => {
       if (config.crop) {
         return cropImage(event, config.crop);
+      }
+      return true;
+    })
+    .then(() => {
+      if (config.resize && config.resize.length) {
+        return Promise.all(config.resize.map(resize => resizeImage(event, resize)));
       }
       return true;
     });
