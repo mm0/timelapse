@@ -41,6 +41,7 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
         -full
           -cam1
           -cam2
+          ...
         -cam1
             config.json
             -exif
