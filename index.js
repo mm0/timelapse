@@ -2,10 +2,10 @@
 
 const gm = require('gm').subClass({ imageMagick: true });
 const fs = require('fs');
+const uuid = require('node-uuid');
 const AWS = require('aws-sdk');
 
-const TMP_PATH = '/tmp/img.jpg';
-const FOREVER = '31536000';
+const FOREVER = '31536000'; // = 365 days, longest allowed max-age
 const DEFAULT_COMPRESSION = 0;
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
@@ -112,9 +112,10 @@ function resizeImage(event, resize) {
 }
 
 function processImage(e) {
-  const event = Object.assign(e);
-  event.image = parsePath(event.object.key);
-  event.tmpFile = TMP_PATH;
+  const event = Object.assign({}, e, {
+    image: parsePath(e.object.key),
+    tmpFile: `/tmp/${uuid.v4()}`,
+  });
   return new Promise((resolve, reject) => {
     const stream = s3.getObject({
       Bucket: event.bucket.name,
@@ -141,6 +142,7 @@ function processImage(e) {
       return true;
     });
   })
+  .then(() => fs.unlinkSync(event.tmpFile))
   .then(() => true);
 }
 

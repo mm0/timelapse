@@ -25,7 +25,8 @@
   "homepage": "https://github.com/hubsy-io/timelapse#readme",
   "dependencies": {
     "aws-sdk": "^2.5.2",
-    "gm": "^1.23.0"
+    "gm": "^1.23.0",
+    "node-uuid": "^1.4.7"
   },
   "devDependencies": {
     "eslint": "^3.3.1",
