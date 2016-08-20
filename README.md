@@ -38,9 +38,11 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 ```
     -bucket
         config.json
+        -full
+          -cam1
+          -cam2
         -cam1
             config.json
-            -full
             -exif
             -resized
                 -[size name 1]
@@ -67,7 +69,7 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 * **exif**: a folder with with exif data files extracted from the originals. The file names must match those of the original file, except the extension (.txt) and the mime type is text/text, http caching=forever
 * **resized**: a folder with resized images with the same file names as the original. The images are grouped in subfolders as per the config file. Set http caching=forever
 
-The camera app knows the bucket name, AWS credentials and its name. It will construct the object name in the format: `[bucketname]/[cameraname]/full/[filename].jpg` and send it to S3. The λ-function will be triggered by the upload and will process the file.
+The camera app knows the bucket name, AWS credentials and its name. It will construct the object name in the format: `[bucketname]/full/[cameraname]/[filename].jpg` and send it to S3. The λ-function will be triggered by the upload and will process the file.
 
 Theoretically, there is no need to pre-create the camera folder if the AWS credentials allow for bucket-wide uploads.
 
