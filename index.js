@@ -94,7 +94,7 @@ function resizeImage(event, resize) {
   return new Promise((resolve, reject) => {
     const stream = gm(event.tmpFile)
     .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
-    .quality('200', 100 - (resize.compression || DEFAULT_COMPRESSION))
+    .quality(100 - (resize.compression || DEFAULT_COMPRESSION))
     .noProfile()
     .stream();
 
