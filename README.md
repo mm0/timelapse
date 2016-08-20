@@ -65,7 +65,7 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 * **config.json**: a config file, which can be nested. The deeper level config file overwrites the higher level one.
 * **file names**: uploaded file names must follow ISO 8601 + the file type in this format (YYYYMMDDThhmmss.ssss.jpg, e.g. 20160815T170001.050.jpg). The date/time is recorded by the camera at the moment of the image capture. It may be different from the exif data.
 * **object properties**: mimetype=image/jpg, http caching=forever
-* **full**: the folder for original files. This is where the cameras upload them in the first place.
+* **full**: the folder for original files. This is where the cameras upload them in the first place. This folder is taken out to the top level to avoid firing the λ-function when resized images are added.
 * **idx**: a folder with indexes maintained by the λ-function as simple list of URLs, one per line. Set http caching to expire immediately.
 * **exif**: a folder with with exif data files extracted from the originals. The file names must match those of the original file, except the extension (.txt) and the mime type is text/text, http caching=forever
 * **resized**: a folder with resized images with the same file names as the original. The images are grouped in subfolders as per the config file. Set http caching=forever
