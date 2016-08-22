@@ -50,7 +50,12 @@ function getConfig(event) {
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/config.json`,
     }).catch(configNoSuchKeyHandler).then(parseJsonBody),
-  ]).then(configs => Object.assign({}, configs[0], configs[1]));
+  ])
+  .then(configs => Object.assign({}, configs[0], configs[1]))
+  .catch(err => {
+    console.error(err);
+    throw new Error(`Error while reading configs: ${err}`);
+  });
 }
 
 function extractExif(event) {
@@ -62,6 +67,7 @@ function extractExif(event) {
       return resolve(data);
     });
   }).then(data => new Promise((resolve, reject) => {
+    console.log('Storing EXIF data', data);
     s3.upload({
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/exif/${event.image.name}.txt`,
@@ -69,10 +75,10 @@ function extractExif(event) {
       CacheControl: `max-age=${FOREVER}`,
     }, (err, res) => {
       if (err) {
-        reject(err);
-      } else {
-        resolve(res);
+        console.error(err);
+        return reject(new Error(`Error while storing EXIF data: ${err}`));
       }
+      return resolve(res);
     });
   }));
 }
@@ -83,7 +89,8 @@ function cropImage(event, crop) {
     .crop(crop.width, crop.height, crop.left, crop.top)
     .write(event.tmpFile, err => {
       if (err) {
-        return reject(err);
+        console.error(err);
+        return reject(new Error(`Error while cropping image: ${err}`));
       }
       return resolve();
     });
@@ -104,7 +111,8 @@ function resizeImage(event, resize) {
       Body: stream,
     }).send((err, data) => {
       if (err) {
-        return reject(err);
+        console.error(err);
+        return reject(new Error(`Error while resizing image: ${err}`));
       }
       return resolve(data);
     });
@@ -149,5 +157,5 @@ function processImage(e) {
 exports.handler = (event, context, callback) => {
   processImage(event.Records[0].s3)
     .then(res => callback(null, res))
-    .catch(err => callback(err));
+    .catch(err => callback(err.stack));
 };

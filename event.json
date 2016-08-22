@@ -7,10 +7,10 @@
       "s3": {
         "s3SchemaVersion": "1.0",
         "bucket": {
-          "name": "lambdaatest"
+          "name": "hubsy-upwork"
         },
         "object": {
-          "key": "full/cam1/1.jpg"
+          "key": "originals/cam1/test.jpg"
         }
       }
     }
