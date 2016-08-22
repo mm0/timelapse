@@ -120,6 +120,7 @@ function resizeImage(event, resize) {
 }
 
 function processImage(e) {
+  console.log(`Processing '${e.object.key}'...`);
   const event = Object.assign({}, e, {
     image: parsePath(e.object.key),
     tmpFile: `/tmp/${uuid.v4()}`,
