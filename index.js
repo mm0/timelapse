@@ -84,6 +84,7 @@ function extractExif(event) {
 }
 
 function cropImage(event, crop) {
+  console.log('Cropping image', crop);
   return new Promise((resolve, reject) => {
     gm(event.tmpFile)
     .crop(crop.width, crop.height, crop.left, crop.top)
@@ -98,6 +99,7 @@ function cropImage(event, crop) {
 }
 
 function resizeImage(event, resize) {
+  console.log('Resizing image', resize);
   return new Promise((resolve, reject) => {
     const stream = gm(event.tmpFile)
     .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
