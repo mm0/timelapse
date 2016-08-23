@@ -124,6 +124,7 @@ The λ-function has its own set of policies. It should be able to read the entir
 Images are resized to multiple smaller sizes as per this section of the config file:
 
     {
+      "exif-retain": ["Orientation", "DateTime", "DateTimeOriginal"],
       "resize": [
         {"folder": "resized/fhd", "width": 1920, "height": 1080, "compression": 50}
         {"folder": "resized/hd", "width": 1080, "height": 720, "compression": 50}
@@ -132,6 +133,7 @@ Images are resized to multiple smaller sizes as per this section of the config f
       "crop": {"top": 100, "left": 100,	"width": 300, "height": 300}
     }
 
+* **exif-retain**: list of EXIF tags to be copied to resized images.
 * **folder**: folder name for the resized image to be put in, relative to the camera root. It's just an object prefix in the context of S3.
 * **width**, **height**: the maximum size in pixels for the image. It may not be proportional to the image which has to fit into this bounding box without cropping.
 * **compression** - JPEG compression / quality level, 1 - 100, where 1 is the lowest and 100 is uncompressed.

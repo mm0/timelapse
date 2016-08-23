@@ -1,7 +1,9 @@
 'use strict';
 
 const gm = require('gm').subClass({ imageMagick: true });
+const piexif = require("piexifjs");
 const fs = require('fs');
+const fsp = require('fs-promise');
 const uuid = require('node-uuid');
 const AWS = require('aws-sdk');
 
@@ -83,6 +85,39 @@ function extractExif(event) {
   }));
 }
 
+function clearExif(event, retain) {
+  console.log('Clearing EXIF data retaining', retain);
+  return fsp.readFile(event.tmpFile)
+  .then(jpeg => {
+    const data = jpeg.toString('binary');
+    const exifObj = piexif.load(data);
+    const newExif = {};
+    const new0th = {};
+    const new1st = {};
+
+    for (let i = 0; i < retain.length; i++) {
+      const k = piexif.ExifIFD[retain[i]] || piexif.ImageIFD[retain[i]];
+
+      if (k && exifObj.Exif[k] !== undefined) {
+        newExif[k] = exifObj.Exif[k];
+      } else if (k && exifObj['0th'][k] !== undefined) {
+        new0th[k] = exifObj['0th'][k];
+      } else if (k && exifObj['1st'][k] !== undefined) {
+        new1st[k] = exifObj['1st'][k];
+      }
+    }
+    exifObj.Exif = newExif;
+    exifObj['0th'] = new0th;
+    exifObj['1st'] = new1st;
+
+    const exifbytes = piexif.dump(exifObj);
+    const newData = piexif.insert(exifbytes, data);
+    const newJpeg = new Buffer(newData, 'binary');
+
+    return fsp.writeFile(event.tmpFile, newJpeg);
+  });
+}
+
 function cropImage(event, crop) {
   console.log('Cropping image', crop);
   return new Promise((resolve, reject) => {
@@ -104,7 +139,6 @@ function resizeImage(event, resize) {
     const stream = gm(event.tmpFile)
     .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
     .quality(100 - (resize.compression || DEFAULT_COMPRESSION))
-    .noProfile()
     .stream();
 
     s3.upload({
@@ -140,6 +174,7 @@ function processImage(e) {
   .then(config => {
     console.log('using config', config);
     return extractExif(event)
+    .then(() => clearExif(event, config['exif-retain']))
     .then(() => {
       if (config.crop) {
         return cropImage(event, config.crop);
@@ -153,7 +188,7 @@ function processImage(e) {
       return true;
     });
   })
-  .then(() => fs.unlinkSync(event.tmpFile))
+  .then(() => fsp.unlink(event.tmpFile))
   .then(() => true);
 }
 
