@@ -69,6 +69,7 @@ function getConfig(event) {
 }
 
 function updateIndex(event) {
+  console.log('Updating main index ...');
   return getObject({
     Bucket: event.bucket.name,
     Key: `${event.image.cam}/index.txt`,
@@ -120,6 +121,10 @@ function updateIndex(event) {
       '7days': i7days,
       '30days': i30days,
     };
+  })
+  .catch(err => {
+    console.error(err);
+    throw new Error(`Error while updating main index: ${err}`);
   });
 }
 
