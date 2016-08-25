@@ -44,6 +44,7 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
           ...
         -cam1
             config.json
+            index.txt
             -exif
             -resized
                 -[size name 1]
@@ -63,6 +64,7 @@ Cameras upload the original full size images to an S3 bucket. Every camera has i
 
 * **bucket name**: can be any name. A λ-function assigned to the bucket will extract the bucket name and the cam prefix from the object name it was given.
 * **config.json**: a config file, which can be nested. The deeper level config file overwrites the higher level one.
+* **index.txt**: a text file used internally for updating **idx** folder of each size, containing the index of the last 5,000 uploaded images. It will be created automatically by the λ-function.
 * **file names**: uploaded file names must follow ISO 8601 + the file type in this format (YYYYMMDDThhmmss.ssss.jpg, e.g. 20160815T170001.050.jpg). The date/time is recorded by the camera at the moment of the image capture. It may be different from the exif data.
 * **object properties**: mimetype=image/jpg, http caching=forever
 * **full**: the folder for original files. This is where the cameras upload them in the first place. This folder is taken out to the top level to avoid firing the λ-function when resized images are added.
@@ -113,7 +115,12 @@ The λ-function has its own set of policies. It should be able to read the entir
             "Action": [
                 "s3:PutObject"
             ],
-            "Resource": "arn:aws:s3:::BUCKET-NAME/*/resized/*"
+            "Resource": [
+              "arn:aws:s3:::BUCKET-NAME/*/resized/*"
+              "arn:aws:s3:::BUCKET-NAME/*/exif/*",
+              "arn:aws:s3:::BUCKET-NAME/*index.txt"
+            ]
+
         }
     ]
 }
