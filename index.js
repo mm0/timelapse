@@ -1,7 +1,7 @@
 'use strict';
 
 const gm = require('gm').subClass({ imageMagick: true });
-const piexif = require("piexifjs");
+const piexif = require('piexifjs');
 const fs = require('fs');
 const fsp = require('fs-promise');
 const uuid = require('node-uuid');
@@ -10,6 +10,7 @@ const AWS = require('aws-sdk');
 const FOREVER = '31536000'; // = 365 days, longest allowed max-age
 const DEFAULT_COMPRESSION = 0;
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+const MAX_INDEX_COUNT = 5000;
 
 function parsePath(path) {
   const res = /^full\/(.*)\/(.*)\.jpg/.exec(path);
@@ -19,15 +20,22 @@ function parsePath(path) {
   };
 }
 
-function configNoSuchKeyHandler(err) {
+function forgivingNoSuchKey(err) {
   if (err.code === 'NoSuchKey') {
-    return { Body: '{}' };
+    return { Body: '' };
   }
   throw err;
 }
 
 function parseJsonBody(data) {
-  return JSON.parse(data.Body.toString());
+  return JSON.parse(data.Body.toString() || '{}');
+}
+
+function toISO(date) {
+  return date.toISOString().replace(/-/g, '');
+}
+function daysAgo(date, days) {
+  return new Date((new Date()).setDate(date.getDate() - days));
 }
 
 function getObject(params) {
@@ -47,16 +55,71 @@ function getConfig(event) {
     getObject({
       Bucket: event.bucket.name,
       Key: 'config.json',
-    }).catch(configNoSuchKeyHandler).then(parseJsonBody),
+    }).catch(forgivingNoSuchKey).then(parseJsonBody),
     getObject({
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/config.json`,
-    }).catch(configNoSuchKeyHandler).then(parseJsonBody),
+    }).catch(forgivingNoSuchKey).then(parseJsonBody),
   ])
   .then(configs => Object.assign({}, configs[0], configs[1]))
   .catch(err => {
     console.error(err);
     throw new Error(`Error while reading configs: ${err}`);
+  });
+}
+
+function updateIndex(event) {
+  return getObject({
+    Bucket: event.bucket.name,
+    Key: `${event.image.cam}/index.txt`,
+  })
+  .catch(forgivingNoSuchKey)
+  .then(res => {
+    const data = res.Body.toString();
+    const items = data ? data.split('\n') : [];
+    items.push(event.image.name);
+
+    // Sort descending
+    items.sort((a, b) => +(a < b) || +(a === b) - 1);
+
+    // Truncate
+    if (items.length > MAX_INDEX_COUNT) {
+      items.length = MAX_INDEX_COUNT;
+    }
+    // Dedupping
+    return Array.from(new Set(items));
+  })
+  .then(items => new Promise((resolve, reject) => {
+    console.log('Storing new index.');
+    s3.upload({
+      Bucket: event.bucket.name,
+      Key: `${event.image.cam}/index.txt`,
+      Body: items.join('\n'),
+      CacheControl: 'no-cache',
+    }, err => {
+      if (err) {
+        console.error(err);
+        return reject(new Error(`Error while storing index: ${err}`));
+      }
+      return resolve(items);
+    });
+  }))
+  .then(items => {
+    const date = new Date();
+
+    const i30days = items.filter(name => name > toISO(daysAgo(date, 30)));
+    const i7days = i30days.filter(name => name > toISO(daysAgo(date, 7)));
+    const i24hr = i7days.filter(name => name > toISO(daysAgo(date, 1)));
+    const today = i24hr.filter(name => name.startsWith(toISO(date).slice(0, 8)));
+
+    return {
+      last: [items[0]],
+      last100: items.slice(0, 100),
+      today,
+      '24hr': i24hr,
+      '7days': i7days,
+      '30days': i30days,
+    };
   });
 }
 
@@ -69,7 +132,7 @@ function extractExif(event) {
       return resolve(data);
     });
   }).then(data => new Promise((resolve, reject) => {
-    console.log('Storing EXIF data', data);
+    console.log(`Storing EXIF data, ${data.split('\n').length} item(s)`);
     s3.upload({
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/exif/${event.image.name}.txt`,
@@ -133,7 +196,7 @@ function cropImage(event, crop) {
   });
 }
 
-function resizeImage(event, resize) {
+function resizeImageAndUpdateIndex(event, resize, index) {
   console.log('Resizing image', resize);
   return new Promise((resolve, reject) => {
     const stream = gm(event.tmpFile)
@@ -148,11 +211,26 @@ function resizeImage(event, resize) {
     }).send((err, data) => {
       if (err) {
         console.error(err);
-        return reject(new Error(`Error while resizing image: ${err}`));
+        return reject(new Error(`Error while resizing '${resize.folder}' image: ${err}`));
       }
       return resolve(data);
     });
-  });
+  }).then((res) => Promise.all(Object.keys(index).map(idx => new Promise((resolve, reject) => {
+    const absUrl = /(.*)\/([^\/]*)$/.exec(res.Location)[1];
+    const key = `${event.image.cam}/${resize.folder}/idx/${idx}.txt`;
+    console.log('Updating index', key);
+    s3.upload({
+      Bucket: event.bucket.name,
+      Key: key,
+      Body: index[idx].map(name => `${absUrl}/${name}.jpg`).join('\n'),
+    }).send((err, data) => {
+      if (err) {
+        console.error(err);
+        return reject(new Error(`Error while updating '${resize.folder} 'index image: ${err}`));
+      }
+      return resolve(data);
+    });
+  }))));
 }
 
 function processImage(e) {
@@ -181,12 +259,14 @@ function processImage(e) {
       }
       return true;
     })
-    .then(() => {
+    .then(() => updateIndex(event).then(index => {
       if (config.resize && config.resize.length) {
-        return Promise.all(config.resize.map(resize => resizeImage(event, resize)));
+        return Promise.all(
+          config.resize.map(resize => resizeImageAndUpdateIndex(event, resize, index))
+        );
       }
       return true;
-    });
+    }));
   })
   .then(() => fsp.unlink(event.tmpFile))
   .then(() => true);
