@@ -77,18 +77,21 @@ function updateIndex(event) {
   .catch(forgivingNoSuchKey)
   .then(res => {
     const data = res.Body.toString();
-    const items = data ? data.split('\n') : [];
+    let items = data ? data.split('\n') : [];
     items.push(event.image.name);
 
     // Sort descending
     items.sort((a, b) => +(a < b) || +(a === b) - 1);
 
+    // Dedupping
+    items = Array.from(new Set(items));
+
     // Truncate
     if (items.length > MAX_INDEX_COUNT) {
       items.length = MAX_INDEX_COUNT;
     }
-    // Dedupping
-    return Array.from(new Set(items));
+
+    return items;
   })
   .then(items => new Promise((resolve, reject) => {
     console.log('Storing new index.');
