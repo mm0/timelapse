@@ -106,7 +106,7 @@ The λ-function has its own set of policies. It should be able to read the entir
         {
             "Effect": "Allow",
             "Action": [
-                "s3:GetObject"
+                "s3:GetObject", "s3:ListBucket"
             ],
             "Resource": "arn:aws:s3:::BUCKET-NAME/*"
         },
@@ -116,11 +116,10 @@ The λ-function has its own set of policies. It should be able to read the entir
                 "s3:PutObject"
             ],
             "Resource": [
-              "arn:aws:s3:::BUCKET-NAME/*/resized/*"
-              "arn:aws:s3:::BUCKET-NAME/*/exif/*",
-              "arn:aws:s3:::BUCKET-NAME/*index.txt"
+                "arn:aws:s3:::BUCKET-NAME/*resized*",
+                "arn:aws:s3:::BUCKET-NAME/*/exif/*",
+                "arn:aws:s3:::BUCKET-NAME/*index.txt"
             ]
-
         }
     ]
 }
