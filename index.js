@@ -100,6 +100,7 @@ function updateIndex(event) {
       Key: `${event.image.cam}/index.txt`,
       Body: items.join('\n'),
       CacheControl: 'no-cache',
+      ContentType: 'text/text',
     }, err => {
       if (err) {
         console.error(err);
@@ -146,6 +147,7 @@ function extractExif(event) {
       Key: `${event.image.cam}/exif/${event.image.name}.txt`,
       Body: data || '\n',
       CacheControl: `max-age=${FOREVER}`,
+      ContentType: 'text/text',
     }, (err, res) => {
       if (err) {
         console.error(err);
@@ -215,6 +217,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
     s3.upload({
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
+      ContentType: 'image/jpeg',
       Body: stream,
     }).send((err, data) => {
       if (err) {
@@ -230,6 +233,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
     s3.upload({
       Bucket: event.bucket.name,
       Key: key,
+      ContentType: 'text/text',
       Body: index[idx].map(name => `${absUrl}/${name}.jpg`).join('\n'),
     }).send((err, data) => {
       if (err) {
