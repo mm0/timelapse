@@ -106,7 +106,14 @@ The λ-function has its own set of policies. It should be able to read the entir
         {
             "Effect": "Allow",
             "Action": [
-                "s3:GetObject", "s3:ListBucket"
+                "s3:ListBucket"
+            ],
+            "Resource": "arn:aws:s3:::BUCKET-NAME"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject"
             ],
             "Resource": "arn:aws:s3:::BUCKET-NAME/*"
         },
