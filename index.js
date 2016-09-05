@@ -8,10 +8,11 @@ const uuid = require('node-uuid');
 const AWS = require('aws-sdk');
 
 const FOREVER = '31536000'; // = 365 days, longest allowed max-age
-const DEFAULT_COMPRESSION = 0;
+const DEFAULT_COMPRESSION = 0; // retain 100% quality by default
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const MAX_INDEX_COUNT = 5000;
+const MAX_INDEX_COUNT = 5000; // The script will only index 5000 latest images. Older images will be in S3, but not in the index files.
 
+//The S3 object path contains Camera name and the timestamp in the file name. We need extract both.
 function parsePath(path) {
   const res = /^full\/(.*)\/(.*)\.jpg/.exec(path);
   return {
@@ -20,6 +21,7 @@ function parsePath(path) {
   };
 }
 
+//A missing S3 object is not a reason to stop the show.
 function forgivingNoSuchKey(err) {
   if (err.code === 'NoSuchKey') {
     return { Body: '' };
@@ -31,13 +33,18 @@ function parseJsonBody(data) {
   return JSON.parse(data.Body.toString() || '{}');
 }
 
+//File names are timestamps in ISO format with - and : removed. E.g. 20161023T130005.367Z.jpg
 function toISO(date) {
   return date.toISOString().replace(/-/g, '');
 }
+
 function daysAgo(date, days) {
   return new Date((new Date()).setDate(date.getDate() - days));
+  //TODO: Add a parameter for resetting the hours so that it's counting whole days only. E.g. If it's Monday, it shouldn't show images from Sunday for 7 days back, even though they are less than 168 hrs old.
+  
 }
 
+//Get an S3 file
 function getObject(params) {
   return new Promise((resolve, reject) => {
     s3.getObject(params, (err, res) => {
@@ -50,6 +57,7 @@ function getObject(params) {
   });
 }
 
+//Get config details from the bucket level and the camera level and merge them
 function getConfig(event) {
   return Promise.all([
     getObject({
@@ -78,7 +86,7 @@ function updateIndex(event) {
   .then(res => {
     const data = res.Body.toString();
     let items = data ? data.split('\n') : [];
-    items.push(event.image.name);
+    items.push(event.image.name);  //TODO: Potentially can get out of sync. Replace with reading the last N records from s3:ListObjects or think of a better way.
 
     // Sort descending
     items.sort((a, b) => +(a < b) || +(a === b) - 1);
@@ -132,6 +140,7 @@ function updateIndex(event) {
   });
 }
 
+//Read EXIF from the original image and store it as a txt file in S3
 function extractExif(event) {
   return new Promise((resolve, reject) => {
     gm(event.tmpFile).identify('%[EXIF:*]', (err, data) => {
@@ -147,7 +156,7 @@ function extractExif(event) {
       Key: `${event.image.cam}/exif/${event.image.name}.txt`,
       Body: data || '\n',
       CacheControl: `max-age=${FOREVER}`,
-      ContentType: 'text/text',
+      ContentType: 'text/text', //TODO: make it a constant
     }, (err, res) => {
       if (err) {
         console.error(err);
@@ -158,6 +167,7 @@ function extractExif(event) {
   }));
 }
 
+//Remove exif from the temporary file except for a few tags from the config file before resizing.
 function clearExif(event, retain) {
   console.log('Clearing EXIF data retaining', retain);
   return fsp.readFile(event.tmpFile)
@@ -194,7 +204,7 @@ function clearExif(event, retain) {
 function cropImage(event, crop) {
   console.log('Cropping image', crop);
   return new Promise((resolve, reject) => {
-    gm(event.tmpFile)
+    gm(event.tmpFile) //TODO: investigate if it's possible to feed in-memory stream to GM instead of saving intermediate files.
     .crop(crop.width, crop.height, crop.left, crop.top)
     .write(event.tmpFile, err => {
       if (err) {
@@ -210,14 +220,14 @@ function resizeImageAndUpdateIndex(event, resize, index) {
   console.log('Resizing image', resize);
   return new Promise((resolve, reject) => {
     const stream = gm(event.tmpFile)
-    .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
-    .quality(100 - (resize.compression || DEFAULT_COMPRESSION))
+    .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!') //TODO: Do we check for the original image size? Only Shrink Larger Images ('>' flag)
+    .quality(100 - (resize.compression || DEFAULT_COMPRESSION)) //TODO: Specify an interpolation method to try a few different ones. Start with bicubic.
     .stream();
 
     s3.upload({
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
-      ContentType: 'image/jpeg',
+      ContentType: 'image/jpeg', //TODO: Move MIME types to a constant.
       Body: stream,
     }).send((err, data) => {
       if (err) {
@@ -245,6 +255,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
   }))));
 }
 
+//The top level function after the entry point
 function processImage(e) {
   console.log(`Processing '${e.object.key}'...`);
   const event = Object.assign({}, e, {
@@ -284,6 +295,7 @@ function processImage(e) {
   .then(() => true);
 }
 
+//Lambda function entry point
 exports.handler = (event, context, callback) => {
   processImage(event.Records[0].s3)
     .then(res => callback(null, res))
