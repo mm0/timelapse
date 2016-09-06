@@ -153,7 +153,7 @@
   <!-- SlidesJS Required: Initialize SlidesJS with a jQuery doc ready -->
   <script>
     $(function() {
-      $.get( "https://s3.amazonaws.com/hubsy-upwork/cam3/resized/sd/idx/last100.txt", function( data ) {
+      $.get( "https://s3.amazonaws.com/hubsy-upwork/cam1/resized/sd/idx/last100.txt", function( data ) {
         $('#slides').html(data.split('\n').map(function(url){ return '<img src="' + url + '"/>'}).join(''));
         $('#slides').slidesjs({
           width: 940,
