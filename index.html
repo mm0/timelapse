@@ -156,8 +156,8 @@
       $.get( "https://s3.amazonaws.com/hubsy-upwork/cam1/resized/sd/idx/last100.txt", function( data ) {
         $('#slides').html(data.split('\n').map(function(url){ return '<img src="' + url + '"/>'}).join(''));
         $('#slides').slidesjs({
-          width: 940,
-          height: 528,
+          width: 540,
+          height: 720,
           navigation: {
             effect: "fade"
           },
