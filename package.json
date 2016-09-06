@@ -28,7 +28,8 @@
     "fs-promise": "^0.5.0",
     "gm": "^1.23.0",
     "node-uuid": "^1.4.7",
-    "piexifjs": "^1.0.0"
+    "piexifjs": "^1.0.0",
+    "raw-body": "^2.1.7"
   },
   "devDependencies": {
     "eslint": "^3.3.1",
