@@ -1,178 +1,92 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Sample Timelapse Slideshow</title>
+    <meta charset="utf-8">
+    <title>Swiper demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
-  <!-- SlidesJS Required (if responsive): Sets the page width to the device width. -->
-  <meta name="viewport" content="width=device-width">
-  <!-- End SlidesJS Required -->
+    <!-- Link Swiper's CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
 
-
-  <!-- SlidesJS Optional: If you'd like to use this design -->
+    <!-- Demo styles -->
     <style>
-      body {
-        -webkit-font-smoothing: antialiased;
-        font: normal 15px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;
-        color: #232525;
-        padding-top:70px;
-      }
+    html, body {
+        position: relative;
+        height: 100%;
+    }
+    body {
+        background: #000;
+        font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        color:#000;
+        margin: 0;
+        padding: 0;
+    }
+    .swiper-container {
+        width: 100%;
+        height: 100%;
+    }
+    .swiper-slide {
+        text-align: center;
+        font-size: 18px;
+        background: #000;
 
-      #slides {
-        display: none
-      }
-
-      #slides .slidesjs-navigation {
-        margin-top:3px;
-      }
-
-      #slides .slidesjs-previous {
-        margin-right: 5px;
-        float: left;
-      }
-
-      #slides .slidesjs-next {
-        margin-right: 5px;
-        float: left;
-      }
-
-      .slidesjs-pagination {
-        margin: 6px 0 0;
-        float: right;
-        list-style: none;
-      }
-
-      .slidesjs-pagination li {
-        float: left;
-        margin: 0 1px;
-      }
-
-      .slidesjs-pagination li a {
-        display: block;
-        float: left;
-      }
-
-      .slidesjs-pagination li a.active,
-      .slidesjs-pagination li a:hover.active {
-        background-position: 0 -13px
-      }
-
-      .slidesjs-pagination li a:hover {
-        background-position: 0 -26px
-      }
-
-      #slides a:link,
-      #slides a:visited {
-        color: #333
-      }
-
-      #slides a:hover,
-      #slides a:active {
-        color: #9e2020
-      }
-
-      .navbar {
-        overflow: hidden
-      }
+    }
+    .swiper-slide img {
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+      -ms-transform: translate(-50%, -50%);
+      -webkit-transform: translate(-50%, -50%);
+      -moz-transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+    }
     </style>
-    <!-- End SlidesJS Optional-->
-
-  <!-- SlidesJS Required: These styles are required if you'd like a responsive slideshow -->
-  <style>
-    /* Prevent the slideshow from flashing on load */
-    #slides {
-      display: none
-    }
-
-    /* Center the slideshow */
-    .container {
-      margin: 0 auto
-    }
-
-    /* Show active item in the pagination */
-    .slidesjs-pagination .active {
-      color:red;
-    }
-
-    /* Media quires for a responsive layout */
-
-    /* For tablets & smart phones */
-    @media (max-width: 767px) {
-      body {
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-      .container {
-        width: auto
-      }
-    }
-
-    /* For smartphones */
-    @media (max-width: 480px) {
-      .container {
-        width: auto
-      }
-    }
-
-    /* For smaller displays like laptops */
-    @media (min-width: 768px) and (max-width: 979px) {
-      .container {
-        width: 724px
-      }
-    }
-
-    /* For larger displays */
-    @media (min-width: 1200px) {
-      .container {
-        width: 1170px
-      }
-    }
-  </style>
-  <!-- SlidesJS Required: -->
-
 </head>
 <body>
-
-
-  <!-- SlidesJS Required: Start Slides -->
-  <!-- The container is used to define the width of the slideshow -->
-  <div class="container">
-    <div id="slides">
+    <!-- Swiper -->
+    <div class="swiper-container">
+        <div class="swiper-wrapper">
+        </div>
+        <!-- Add Pagination -->
+        <div class="swiper-pagination swiper-pagination-white"></div>
+        <!-- Navigation -->
+        <div class="swiper-button-next swiper-button-white"></div>
+        <div class="swiper-button-prev swiper-button-white"></div>
     </div>
-  </div>
-  <!-- End SlidesJS Required: Start Slides -->
 
-  <!-- SlidesJS Required: Link to jQuery -->
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-  <!-- End SlidesJS Required -->
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+    <!-- Swiper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
 
-  <!-- SlidesJS Required: Link to jquery.slides.js -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/slidesjs/3.0/jquery.slides.min.js" crossorigin="anonymous"></script>
-  <!-- End SlidesJS Required -->
+    <!-- Initialize Swiper -->
+    <script>
 
-  <!-- SlidesJS Required: Initialize SlidesJS with a jQuery doc ready -->
-  <script>
+
     $(function() {
       $.get( "https://s3.amazonaws.com/hubsy-upwork/cam1/resized/sd/idx/last100.txt", function( data ) {
-        $('#slides').html(data.split('\n').map(function(url){ return '<img src="' + url + '"/>'}).join(''));
-        $('#slides').slidesjs({
-          width: 540,
-          height: 720,
-          navigation: {
-            effect: "fade"
-          },
-          pagination: {
-            effect: "fade"
-          },
-          effect: {
-            fade: {
-              speed: 800
-            }
-          }
+        $('.swiper-wrapper').html(data.split('\n').map(function(url){
+          return '<div class="swiper-slide"><img data-src="' + url +  '" class="swiper-lazy"><div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div></div>'
+        }).join(''));
+
+        var swiper = new Swiper('.swiper-container', {
+          nextButton: '.swiper-button-next',
+          prevButton: '.swiper-button-prev',
+          pagination: '.swiper-pagination',
+          paginationClickable: true,
+          // Disable preloading of all images
+          preloadImages: false,
+          // Enable lazy loading
+          lazyLoading: true,
+          effect: 'coverflow'
         });
       });
     });
-  </script>
-  <!-- End SlidesJS Required -->
+
+    </script>
 </body>
 </html>
