@@ -1,35 +1,25 @@
-# Hubsy Timelapse
+Hubsy Timelapse uses AWS infrastructure to create timelapse videos and slideshows from images taken by [Hubsy Cameras](http://hubsy.io).
 
-Use AWS infrastructure for timelapse videos and presentations.
+# Overview
 
-## Overview
+This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are small automous cams with high resolution sensors, WiFi and cellular connectivity and either battery or solar power supply.
 
-1. Images are submitted to an S3 bucket.
-2. A Lambda function is triggered on new image upload
-2.2. The image is processed (cropped, resized, exif cleaned up, etc)
-2.3. The image is added to the timelapse video
-3. A rules-based workflow is triggered for further processing
-4. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
+Here is how it all works.
 
-## Setup
+#. Put your hubsy up and point it in the direction of the action
+#. Your hubsy will start uploading images to an S3 bucket.
+#. A Lambda function is triggered on new image upload
+#.#. The image is processed (cropped, resized, exif cleaned up, etc)
+#.#. The image is added to the timelapse video and uploaded to YouTube, if want to make it public
+#. A rules-based workflow is triggered for further processing
+#. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
+#. A JavaScript slideshow can be embedded into your website to show the last N images
 
-```bash
-npm install
-```
-Set your AWS configuration in `.env` file.
+# Image processing with a λ-function
 
-To test run locally:
-```bash
-npm start
-```
+### Set up
 
-To deploy on AWS:
-```bash
-npm run deploy
-```
-
-
-## Implementation details
+The code for the λ-function is located in master branch. Use [???] package from [???] to upload to AWS. Use IAM and S3 policies from this document to configure security and access.
 
 ### S3 storage
 
@@ -152,52 +142,41 @@ Images are resized to multiple smaller sizes as per this section of the config f
 * **compression** - JPEG compression / quality level, 1 - 100, where 1 is the lowest and 100 is uncompressed.
 * **crop** - describes the box that has to be cropped from the original image before resizing.
 
-When a new file is placed into the bucket the λ-function should check if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results.
+When a new file is placed into the bucket the λ-function checks if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. Images are rotated to the set orientation and the exif orientation tag is removed for compatibility.
 
-### Video
+# Video
 
-Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file.
-
-### Getting a list of images for a slideshow
-
-The most commonly requested image sets are stored in `[cam-name]/idx` folder as absolute image URLs, one per line.
-
-An HTTP request can be made to a lambda function to get a list of files for a date/time range. The HTTP REST API is configured via _Amazon API Gateway_.
-
-**Parameters**: `dateBefore`, `dateAfter`, `count`.
+Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file. **Not implemented**
 
 
-### Sample Slideshow
-You can find example slideshow page code on https://github.com/hubsy-io/timelapse/blob/gh-pages/index.html it's accessible on https://hubsy-io.github.io/timelapse/.
+# Slideshow
 
-It's using [Swiper](http://idangero.us/swiper) to create a touch friendly slideshow with lazy image loading.
+You can find a sample slideshow page code on https://github.com/hubsy-io/timelapse/blob/gh-pages/index.html or view a demo at https://hubsy-io.github.io/timelapse/.
 
-All you have to do is to include Swiper CSS, Swiper JS file and jQuery on your page:
+We used [Swiper](http://idangero.us/swiper) to create a touch friendly slideshow with lazy image loading.
+
+There are a few configurable parameters for this script, but the only required parameter you have to specify is the source of your image file. They are listed in multiple index files. Look inside `resized` directory for `idx` subfolder and choose the suitable index file, e.g. `https://s3.amazonaws.com/[your bucket name]/[your cam name]/resized/sd/idx/last100.txt`
+
+Include Swiper CSS, Swiper JS file and jQuery on the header of your web page:
 ```html
-<!-- Link Swiper's CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
-
-<!-- jQuery -->
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-<!-- Swiper JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
 ```
-Add this placeholder wherever you want to see the slideshow:
+
+Insert this HTML placeholder wherever you want to see the slideshow:
 ```html
-<!-- Swiper -->
 <div class="swiper-container">
-    <!-- Slides Placeholder -->
     <div class="swiper-wrapper"></div>
-
-    <!-- Add Pagination (optional) -->
-    <div class="swiper-pagination swiper-pagination-white"></div>
-
+    <!-- Pagination (optional) -->
+    <div class="swiper-pagination swiper-pagination-white"></div> 
     <!-- Navigation (optional) -->
-    <div class="swiper-button-next swiper-button-white"></div>
+    <div class="swiper-button-next swiper-button-white"></div> 
     <div class="swiper-button-prev swiper-button-white"></div>
 </div>
 ```
-And Initialize it using:
+
+Add this scriptat the end of the page to initialize the slideshow. Make sure you replaced the URL of index file with the one pointing at your images.
 ```html
 <script>
   $(function() {
@@ -228,9 +207,9 @@ And Initialize it using:
   });
 </script>
 ```
-You can find more options here at [Swiper Docs](http://idangero.us/swiper/api/).
+You can find more configuration options in [Swiper Docs](http://idangero.us/swiper/api/).
 
-Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html). You can use this quick configuration that allows all origins to access your resources:
+Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html). You can use this sample configuration that allows all origins to access your resources:
 
 ```xml
 <CORSConfiguration>
