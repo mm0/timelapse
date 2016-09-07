@@ -165,3 +165,79 @@ The most commonly requested image sets are stored in `[cam-name]/idx` folder as 
 An HTTP request can be made to a lambda function to get a list of files for a date/time range. The HTTP REST API is configured via _Amazon API Gateway_.
 
 **Parameters**: `dateBefore`, `dateAfter`, `count`.
+
+
+### Sample Slideshow
+You can find example slideshow page code on https://github.com/hubsy-io/timelapse/blob/gh-pages/index.html it's accessible on https://hubsy-io.github.io/timelapse/.
+
+It's using [Swiper](http://idangero.us/swiper) to create a touch friendly slideshow with lazy image loading.
+
+All You have to do is to include Swiper CSS, Swiper JS file and jQuery on your page:
+```html
+<!-- Link Swiper's CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<!-- Swiper JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
+```
+Add this placeholder wherever you want to see the slideshow:
+```html
+<!-- Swiper -->
+<div class="swiper-container">
+    <!-- Slides Placeholder -->
+    <div class="swiper-wrapper"></div>
+
+    <!-- Add Pagination (optional) -->
+    <div class="swiper-pagination swiper-pagination-white"></div>
+
+    <!-- Navigation (optional) -->
+    <div class="swiper-button-next swiper-button-white"></div>
+    <div class="swiper-button-prev swiper-button-white"></div>
+</div>
+```
+And Initialize it using:
+```html
+<script>
+  $(function() {
+    // Loading arbitrary index file
+    $.get('https://s3.amazonaws.com/hubsy-upwork/cam1/resized/sd/idx/last100.txt', function(data) {
+      // Populating slides
+      $('.swiper-wrapper').html(data.split('\n').map(function(url){
+        // Extracting ISO date from URL
+        var iso = url.match(/([^\/]+)(?=\.\w+$)/)[0];
+        // Converting ISO date
+        var title = new Date(iso.slice(0,4) + '-' + iso.slice(4,6) + '-' + iso.slice(6,11) + ':' + iso.slice(11,13) + ':' + iso.slice(13));
+        return '<div class="swiper-slide"><img data-src="' + url +  '" class="swiper-lazy"><div class="title">' + title + '</div><div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div></div>'
+      }).join(''));
+
+      // Initializing swiper
+      var swiper = new Swiper('.swiper-container', {
+        nextButton: '.swiper-button-next',
+        prevButton: '.swiper-button-prev',
+        pagination: '.swiper-pagination',
+        paginationClickable: true,
+        // Disable preloading of all images
+        preloadImages: false,
+        // Enable lazy loading
+        lazyLoading: true,
+        effect: 'coverflow'
+      });
+    });
+  });
+</script>
+```
+You can find more options here at [Swiper Docs](http://idangero.us/swiper/api/).
+
+Make sure to enable CORS on your AWS S3 bucket. You can use this quick configuration that allows all origins to access your resources:
+
+```xml
+<CORSConfiguration>
+ <CORSRule>
+   <AllowedOrigin>*</AllowedOrigin>
+   <AllowedMethod>GET</AllowedMethod>
+   <AllowedHeader>*</AllowedHeader>
+ </CORSRule>
+</CORSConfiguration>
+```
