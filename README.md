@@ -172,7 +172,7 @@ You can find example slideshow page code on https://github.com/hubsy-io/timelaps
 
 It's using [Swiper](http://idangero.us/swiper) to create a touch friendly slideshow with lazy image loading.
 
-All You have to do is to include Swiper CSS, Swiper JS file and jQuery on your page:
+All you have to do is to include Swiper CSS, Swiper JS file and jQuery on your page:
 ```html
 <!-- Link Swiper's CSS -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
