@@ -222,7 +222,7 @@ And Initialize it using:
         preloadImages: false,
         // Enable lazy loading
         lazyLoading: true,
-        effect: 'coverflow'
+        effect: 'fade'
       });
     });
   });
@@ -230,7 +230,7 @@ And Initialize it using:
 ```
 You can find more options here at [Swiper Docs](http://idangero.us/swiper/api/).
 
-Make sure to enable CORS on your AWS S3 bucket. You can use this quick configuration that allows all origins to access your resources:
+Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html). You can use this quick configuration that allows all origins to access your resources:
 
 ```xml
 <CORSConfiguration>
@@ -241,3 +241,4 @@ Make sure to enable CORS on your AWS S3 bucket. You can use this quick configura
  </CORSRule>
 </CORSConfiguration>
 ```
+*AllowedOrigin* tag can have `*` if you want any website to embed your slideshow or a specific domain name, including http-part, e.g. `http://www.example2.com` to limit it to your website only.
