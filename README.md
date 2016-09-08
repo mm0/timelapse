@@ -6,14 +6,14 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
 
 Here is how it all works.
 
-#. Put your hubsy up and point it in the direction of the action
-#. Your hubsy will start uploading images to an S3 bucket.
-#. A Lambda function is triggered on new image upload
-#.#. The image is processed (cropped, resized, exif cleaned up, etc)
-#.#. The image is added to the timelapse video and uploaded to YouTube, if want to make it public
-#. A rules-based workflow is triggered for further processing
-#. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
-#. A JavaScript slideshow can be embedded into your website to show the last N images
+1. Put your hubsy up and point it in the direction of the action
+2. Your hubsy will start uploading images to an S3 bucket.
+3. A Lambda function is triggered on new image upload
+3.a. The image is processed (cropped, resized, exif cleaned up, etc)
+3.b. The image is added to the timelapse video and uploaded to YouTube, if want to make it public
+4. A rules-based workflow is triggered for further processing
+5. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
+6. A JavaScript slideshow can be embedded into your website to show the last N images
 
 # Image processing with a λ-function
 
