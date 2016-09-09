@@ -157,13 +157,6 @@ We used [Swiper](http://idangero.us/swiper) to create a touch friendly slideshow
 
 There are a few configurable parameters for this script, but the only required parameter you have to specify is the source of your image file. They are listed in multiple index files. Look inside `resized` directory for `idx` subfolder and choose the suitable index file, e.g. `https://s3.amazonaws.com/[your bucket name]/[your cam name]/resized/sd/idx/last100.txt`
 
-Include Swiper CSS, Swiper JS file and jQuery on the header of your web page:
-```html
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
-<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
-```
-
 Insert this HTML placeholder wherever you want to see the slideshow:
 ```html
 <div class="swiper-container">
@@ -176,8 +169,17 @@ Insert this HTML placeholder wherever you want to see the slideshow:
 </div>
 ```
 
-Add this scriptat the end of the page to initialize the slideshow. Make sure you replaced the URL of index file with the one pointing at your images.
+Insert these script anywhere of the page to initialize the slideshow. Make sure you replaced the URL of index file with the one pointing at your images.
 ```html
+<script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
+<script>
+  // Loading Swiper stylesheet
+  var link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css';
+  document.head.appendChild(link);
+</script>
 <script>
   $(function() {
     // Loading arbitrary index file
@@ -208,6 +210,11 @@ Add this scriptat the end of the page to initialize the slideshow. Make sure you
 </script>
 ```
 You can find more configuration options in [Swiper Docs](http://idangero.us/swiper/api/).
+
+You can also insert CSS link tag in your html header manualy instead of using stylesheet loader script:
+```html
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css">
+```
 
 Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/AmazonS3/latest/dev/cors.html). You can use this sample configuration that allows all origins to access your resources:
 
