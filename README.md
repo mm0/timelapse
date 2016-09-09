@@ -169,7 +169,7 @@ Insert this HTML placeholder wherever you want to see the slideshow:
 </div>
 ```
 
-Insert these script anywhere of the page to initialize the slideshow. Make sure you replaced the URL of index file with the one pointing at your images.
+Insert these scripts anywhere of the page to initialize the slideshow. Make sure you replaced the URL of index file with the one pointing at your images.
 ```html
 <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
