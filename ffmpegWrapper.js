@@ -76,13 +76,79 @@ function addAudio()
     fs.renameSync("finalVideoNoAudio.mp4", "finalVideo.mp4");
 }
 
+function timestampFilenameCompare(var a, var b)
+{
+    var indexOfTA = a.indexOf("T");
+    var dateA = parseInt(a.slice(0, indexOfTA));
+    var timeOfDayA = parseInt(a.slice(indexOfTA + 1, a.IndexOf(".")));
+
+    var indexOfTB = b.indexOf("T");
+    var dateB = parseInt(b.slice(0, indexOfTB));
+    var timeOfDayB = parseInt(b.slice(indexOfT + 1, b.IndexOf(".")));
+
+    if (dateA > dateB)
+    {
+        return 1;
+    }
+    else if (dateA < dateB)
+    {
+        return -1;
+    }
+    else //dateA == dateB
+    {
+        if (timeOfDayA > timeOfDayB)
+        {
+            return 1;
+        }
+        else if (timeOfDayA < timeOfDayB)
+        {
+            return -1;
+        }
+        else
+        {
+            return 0; // equal
+        }
+    }
+}
 
 function FFmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended)//TODO(james): asserts on inputs
 {
     console.log("Creating video from frames...");
 
-    // TODO(james): rename image files from AWS format to something ffmpeg can parse
-    // if there isn't any easy way for Ehsan to change the names
+    // rename files from timestamp format to numbered order format
+    {
+        // timestamp format is something like 20160907T065144.044Z.jpg
+        var fileNames = fs.readdirSync(imageDirectory);
+        if (fileNames.length > 0)
+        {
+            if (fileNames.length > 999)
+            {
+                console.log("Too many images in directory! Must be less than 1000");
+                return;
+            }
+
+            console.log("sorting image files...");
+            for (var fileIndex = 0; fileIndex < fileNames.length; fileIndex++)
+            {
+                var fileName = fileNames[fileIndex];
+                var extension = fileName.slice(fileName.lastIndexOf("."));
+                if (extension != ".jpg")
+                {
+                    console.log("File in image directory isn't a jpg");
+                    return;
+                }
+            }
+
+            fileNames.sort(timestampFilenameCompare);
+
+            for (var fileIndex = 0; fileIndex < fileNames.length; fileIndex++)
+            {
+                var newName = util.format('%03d.jpg', fileIndex);
+                fs.renameSync(imageDirectory+"/"+fileNames[fileIndex], newName);
+            }
+        }
+
+    }
 
 
     var filename = (beingAppended) ? "newFramesVideoOutput.mp4" : "finalVideoNoAudio.mp4";
@@ -91,7 +157,7 @@ function FFmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended)//TODO(j
     var command = platformFFmpegCallingConvention();
     command += " -y"; //NOTE(james): override existing video if there is one (there shouldn't)
     command += " -framerate " + fps.toString();
-    command += " -i " + imageDirectory + "/" + "%03d.jpg";//NOTE(james): this expects an image with a name like 20160907T065144.044Z.jpg
+    command += " -i " + imageDirectory + "/" + "%03d.jpg";//NOTE(james): this expects an image with a name like 001.jpg
 
     command += " -c:v libx264 -r 30 -pix_fmt yuv420p " + filename;
 
@@ -121,7 +187,7 @@ function FFmpegAppendFrames(imageDirectory, fps, existingVideo)
 
     fs.unlink("newFramesVideoOutput.mp4"); //NOTE(james): deleting the temp video
     fs.unlink("concatList.txt"); //NOTE(james): deleting the concatList
-    
+
     console.log("Concatenated video!");
 }
 
