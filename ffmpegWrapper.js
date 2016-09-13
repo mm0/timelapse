@@ -25,6 +25,7 @@ let execSync = require('child_process').execSync;
 // we also need this to rename temp files
 let fs = require('fs');
 
+
 // NOTE(james): if main hasn't been set, like I think it would be in AWS, then we are using the offline CLI
 const args = process.argv;
 if (require.main === module)
@@ -47,7 +48,8 @@ function offlineCLI()
     }
     else
     {
-        return callback('Please specify a command to run as event.cmd');
+        console.log("bad wrapper arguments. ffmpegWrapper.js imageDirectory FPS [optional]existingVideo");
+        return;
     }
 
 
@@ -76,45 +78,19 @@ function addAudio()
     fs.renameSync("finalVideoNoAudio.mp4", "finalVideo.mp4");
 }
 
-function timestampFilenameCompare(var a, var b)
-{
-    var indexOfTA = a.indexOf("T");
-    var dateA = parseInt(a.slice(0, indexOfTA));
-    var timeOfDayA = parseInt(a.slice(indexOfTA + 1, a.IndexOf(".")));
-
-    var indexOfTB = b.indexOf("T");
-    var dateB = parseInt(b.slice(0, indexOfTB));
-    var timeOfDayB = parseInt(b.slice(indexOfT + 1, b.IndexOf(".")));
-
-    if (dateA > dateB)
-    {
-        return 1;
-    }
-    else if (dateA < dateB)
-    {
-        return -1;
-    }
-    else //dateA == dateB
-    {
-        if (timeOfDayA > timeOfDayB)
-        {
-            return 1;
-        }
-        else if (timeOfDayA < timeOfDayB)
-        {
-            return -1;
-        }
-        else
-        {
-            return 0; // equal
-        }
-    }
-}
-
-function FFmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended)//TODO(james): asserts on inputs
+/*
+    NOTE(james): creates a video from the images in imageDirectory at specified fps,
+    if its beingAppended the output video name is "newFramesVideoOutput.mp4", otherwise
+    it is "finalVideoNoAudio.mp4"
+*/
+function FFmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended)
 {
     console.log("Creating video from frames...");
 
+    if (fps > 30)
+    {
+        console.log("fps too high, it must be less than or equal to 30");
+    }
     // rename files from timestamp format to numbered order format
     {
         // timestamp format is something like 20160907T065144.044Z.jpg
@@ -139,19 +115,32 @@ function FFmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended)//TODO(j
                 }
             }
 
-            fileNames.sort(timestampFilenameCompare);
+            fileNames.sort();
 
             for (var fileIndex = 0; fileIndex < fileNames.length; fileIndex++)
             {
-                var newName = util.format('%03d.jpg', fileIndex);
-                fs.renameSync(imageDirectory+"/"+fileNames[fileIndex], newName);
+                var newName;
+                if (fileIndex < 10)
+                {
+                    newName = "00"+ fileIndex.toString();
+                }
+                else if (fileIndex < 100)
+                {
+                    newName = "0"+fileIndex.toString();
+                }
+                else
+                {
+                    newName = fileIndex.toString();
+                }
+                var oldPath = imageDirectory+"/"+fileNames[fileIndex];
+                var newPath = imageDirectory+"/"+newName+".jpg";
+                fs.renameSync(oldPath, newPath);
             }
         }
-
     }
 
 
-    var filename = (beingAppended) ? "newFramesVideoOutput.mp4" : "finalVideoNoAudio.mp4";
+    var videoName = (beingAppended) ? "newFramesVideoOutput.mp4" : "finalVideoNoAudio.mp4";
 
     //NOTE(james): FFMPEG images to video docs https://trac.ffmpeg.org/wiki/Create%20a%20video%20slideshow%20from%20images
     var command = platformFFmpegCallingConvention();
@@ -159,13 +148,15 @@ function FFmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended)//TODO(j
     command += " -framerate " + fps.toString();
     command += " -i " + imageDirectory + "/" + "%03d.jpg";//NOTE(james): this expects an image with a name like 001.jpg
 
-    command += " -c:v libx264 -r 30 -pix_fmt yuv420p " + filename;
+    command += " -c:v libx264 -r 30 -pix_fmt yuv420p " + videoName;
 
     //NOTE(james): final command should be something like ffmpeg -y -framerate FPS -i IMAGEDIRECTORY/%03d.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4
     execSync(command);
     console.log("Created video from frames!");
 }
 
+// NOTE(james): Creates a video from images in imageDirectory at specified fps,
+// appends that video to the existingVideo
 function FFmpegAppendFrames(imageDirectory, fps, existingVideo)
 {
     FFmpegCreateVideoFromFrames(imageDirectory, fps, true);
@@ -175,7 +166,6 @@ function FFmpegAppendFrames(imageDirectory, fps, existingVideo)
     concatListContent += "file '"+ existingVideo + "'\r\n"; //NOTE(james): becomes - file '/path/to/file1'
     concatListContent += "file 'newFramesVideoOutput.mp4'\r\n";
 
-    //TODO(james): create test list of videos to concatenate (newVideo and existingVideo)
     fs.writeFileSync("concatList.txt", concatListContent);
 
     //NOTE(james): FFmpeg concatenation docs https://trac.ffmpeg.org/wiki/Concatenate
@@ -191,6 +181,9 @@ function FFmpegAppendFrames(imageDirectory, fps, existingVideo)
     console.log("Concatenated video!");
 }
 
+//
+// Helpers
+//
 function platformFFmpegCallingConvention()
 {
     if (process.platform == "win32")
