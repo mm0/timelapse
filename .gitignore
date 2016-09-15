@@ -2,6 +2,10 @@ node_modules
 res
 build
 .env
+.envrc
 deploy.env
 .DS_Store
 npm-debug.log
+*.tfstate
+*.backup
+project.json

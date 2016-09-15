@@ -9,25 +9,39 @@ Use AWS infrastructure for timelapse videos and presentations.
 2.2. The image is processed (cropped, resized, exif cleaned up, etc)
 2.3. The image is added to the timelapse video
 3. A rules-based workflow is triggered for further processing
-4. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
+4. A lambda function can be called via HTTP to retrieve a list of file names for a slideshow given a date/time range
 
 ## Setup
 
+1. Install [Terraform](https://www.terraform.io/intro/getting-started/install.html).
+
+2. Install [Apex](http://apex.run).
+
+  On macOS, Linux, or OpenBSD run the following:
+
+  ```bash
+  curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
+  ```
+
+3. Install dependencies:
 ```bash
 npm install
 ```
-Set your AWS configuration in `.env` file.
+4. Set your AWS configuration.
 
-To test run locally:
+5. Set your desired s3 bucket name as env variable:
 ```bash
-npm start
+export TF_VAR_storage_bucket_name=my-hubsy-image-bucket-name
 ```
 
-To deploy on AWS:
+6. Deploy functions and apply your infrastructure:
 ```bash
-npm run deploy
+apex init
+apex deploy
+apex infra apply
 ```
 
+7. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
 
 ## Implementation details
 

@@ -1,13 +1,12 @@
-'use strict';
+import λ from 'apex.js';
+import piexif from 'piexifjs';
+import fs from 'fs';
+import fsp from 'fs.promised';
+import uuid from 'node-uuid';
+import AWS from 'aws-sdk';
+import getRawBody from 'raw-body';
 
 const gm = require('gm').subClass({ imageMagick: true });
-const piexif = require('piexifjs');
-const fs = require('fs');
-const fsp = require('fs-promise');
-const uuid = require('node-uuid');
-const AWS = require('aws-sdk');
-const Readable = require('stream').Readable;
-const getRawBody = require('raw-body');
 
 const FOREVER = '31536000'; // = 365 days, longest allowed max-age
 const DEFAULT_COMPRESSION = 0; // retain 100% quality by default
@@ -50,30 +49,17 @@ function daysAgo(date, days) {
   // even though they are less than 168 hrs old.
 }
 
-// Get an S3 file
-function getObject(params) {
-  return new Promise((resolve, reject) => {
-    s3.getObject(params, (err, res) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(res);
-      }
-    });
-  });
-}
-
 // Get config details from the bucket level and the camera level and merge them
 function getConfig(event) {
   return Promise.all([
-    getObject({
+    s3.getObject({
       Bucket: event.bucket.name,
       Key: 'config.json',
-    }).catch(forgivingNoSuchKey).then(parseJsonBody),
-    getObject({
+    }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
+    s3.getObject({
       Bucket: event.bucket.name,
       Key: `${event.image.cam}/config.json`,
-    }).catch(forgivingNoSuchKey).then(parseJsonBody),
+    }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
   ])
   .then(configs => Object.assign({}, configs[0], configs[1]))
   .catch(err => {
@@ -84,10 +70,10 @@ function getConfig(event) {
 
 function updateIndex(event) {
   console.log('Updating main index ...');
-  return getObject({
+  return s3.getObject({
     Bucket: event.bucket.name,
     Key: `${event.image.cam}/index.txt`,
-  })
+  }).promise()
   .catch(forgivingNoSuchKey)
   .then(res => {
     const data = res.Body.toString();
@@ -315,8 +301,4 @@ function processImage(e) {
 }
 
 // Lambda function entry point
-exports.handler = (event, context, callback) => {
-  processImage(event.Records[0].s3)
-    .then(res => callback(null, res))
-    .catch(err => callback(err.stack));
-};
+export default λ(event => processImage(event.Records[0].s3));

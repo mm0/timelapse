@@ -1,0 +1,13 @@
+{
+  "description": "Hubsy Timelapse video encoder",
+  "timeout": 300,
+  "memory": 512,
+  "memory": 128,
+  "timeout": 5,
+  "runtime": "nodejs4.3",
+  "handler": "lib.default",
+  "hooks": {
+    "build": "../../node_modules/.bin/webpack --config ../../webpack.config.js",
+    "clean": "rm -fr lib"
+  }
+}
