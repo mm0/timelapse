@@ -22,6 +22,14 @@ POLICY
   tags {
     TF = "yes"
   }
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET"]
+    allowed_origins = ["*"]
+    expose_headers = ["ETag"]
+    max_age_seconds = 3000
+  }
 }
 
 resource "aws_s3_bucket_object" "default-config" {
