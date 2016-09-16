@@ -1,9 +1,7 @@
 {
   "description": "Hubsy Timelapse video encoder",
   "timeout": 300,
-  "memory": 512,
-  "memory": 128,
-  "timeout": 5,
+  "memory": 1536,
   "runtime": "nodejs4.3",
   "handler": "lib.default",
   "hooks": {

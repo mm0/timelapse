@@ -1,8 +1,9 @@
 extends: eslint:recommended
 parser: babel-eslint
 env:
-  browser: true
+  node: true
 globals:
   Promise: true
+  Set: true
 rules:
   no-console: 0

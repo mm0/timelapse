@@ -27,7 +27,9 @@ resource "aws_iam_policy" "lambda-policy" {
       "Resource": [
         "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*resized*",
         "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*/exif/*",
-        "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*index.txt"
+        "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*index.txt",
+        "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*last-video-index.txt",
+        "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*video.mp4"
       ]
     }
   ]

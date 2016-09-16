@@ -16,11 +16,9 @@
 
     existing video must be an mp4
 */
-'use strict';
 
-// NOTE(james): lets us execute other programs (ffmpeg)
-const exec = require('child_process').exec;
-
+process.env['PATH'] = process.env['PATH'] + ':' + process.env['LAMBDA_TASK_ROOT']
+import { exec } from 'child_process';
 // NOTE(james): to concatenate videos, we must create a text list for ffmpeg to read
 // we also need this to rename temp files
 const fs = require('fs');
@@ -42,9 +40,9 @@ function addAudio() {
 }
 */
 
-function ffmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended) {
+function ffmpegCreateVideoFromFrames(imageDirectory, fps) {
   return new Promise((resolve, reject) => {
-    fs.readdir(`tmp/${imageDirectory}`, (err, fileNames) => {
+    fs.readdir(imageDirectory, (err, fileNames) => {
       if (err) {
         console.error(`couldn't read directory." ${err}`);
         return reject();
@@ -61,72 +59,40 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended) {
             console.log('Too many images in directory! Must be less than 1000');
             return reject();
           }
-
-          console.log('sorting image files...');
-          for (let fileIndex = 0; fileIndex < fileNames.length; fileIndex++) {
-            const fileName = fileNames[fileIndex];
-            const extension = fileName.slice(fileName.lastIndexOf('.'));
-            if (extension !== '.jpg') {
-              console.log('File in image directory isn\'t a jpg');
-              return reject();
-            }
-          }
-          fileNames.sort();
-
-          for (let fileIndex = 0; fileIndex < fileNames.length; fileIndex++) {
-            let newName;
-            if (fileIndex < 10) {
-              newName = `00${fileIndex}`;
-            } else if (fileIndex < 100) {
-              newName = `0${fileIndex}`;
-            } else {
-              newName = fileIndex.toString();
-            }
-            const currentName = fileNames[fileIndex];
-            const oldPath = `tmp/${imageDirectory}/${currentName}`;
-            const newPath = `tmp/${imageDirectory}/${newName}.jpg`;
-
-            /*
-            HELP(james): not sure how to make this async. I think I could make an array
-            of the Promises then do a Promise.all(...) to wait for them. I couldn't make
-            it work though
-            */
-            fs.renameSync(oldPath, newPath);
-          }
-          console.log('sorted images.');
-        }
-
-        console.log('Creating video from frames...');
-        let folderName;
-        if (beingAppended) {
-          folderName = 'tmp/';
         } else {
-          folderName = '';
+          return reject(new Error('No images to append to video.'));
         }
-        const fileName = `${uuidString()}.mp4`;
-        const fullFileName = `${folderName}${fileName}`;
 
+
+        const fullFileName = `/tmp/${uuidString()}.mp4`;
 
         // NOTE(james): FFMPEG images to video docs
         // https://trac.ffmpeg.org/wiki/Create%20a%20video%20slideshow%20from%20images
 
-        let command = '../ffmpeg -y ';
-        command += `-framerate ${fps} `;
-        command += `-i tmp/${imageDirectory}/%03d.jpg `;
-        command += `-c:v libx264 -r 30 -pix_fmt yuv420p ${fullFileName}`;
+        const args = [
+          '-y',
+          '-loglevel', 'debug',
+          '-framerate', fps,
+          '-i', `${imageDirectory}/%03d.jpg`,
+          '-c:v', 'libx264',
+          '-r', '30',
+          '-pix_fmt', 'yuv420p',
+          fullFileName,
+        ];
 
         // NOTE(james): final command should be something like
         // ffmpeg -y -framerate FPS -i IMAGEDIR/%03d.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4
-
-        return exec(command, (ffmpegErr) => {
-          if (ffmpegErr) {
-            console.error(`exec error: ${ffmpegErr}`);
-            return reject();
-          } else {
-            console.log('Created video from frames.');
-            return resolve(fileName);
+        console.log('Creating video from frames...', args);
+        exec(['ffmpeg', ...args].join(' '), (err, stdout, stderr) => {
+          if (err) {
+            console.error('Error while running ffmpeg', err);
+            return reject(err);
           }
-        });
+          console.log('ffmpeg out', stdout);
+          console.log('ffmpeg err', stderr);
+          resolve(fullFileName);
+        })
+
       }
     });
   });
@@ -136,9 +102,8 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, beingAppended) {
 // appends that video to the existingVideo
 function ffmpegAppendFrames(imageDirectory, fps, existingVideo) {
   return new Promise((resolve, reject) => {
-    ffmpegCreateVideoFromFrames(imageDirectory, fps, true).then(newFramesVideoName => {
+    ffmpegCreateVideoFromFrames(imageDirectory, fps).then(newFramesVideoName => {
       console.log('Concatenating video...');
-      const fullNewFramesVideoName = `tmp/${newFramesVideoName}`;
     /*
       NOTE(james): ffmpeg needs a list of files to be concatenated, so the output
       of this file is something like
@@ -151,34 +116,35 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo) {
       const concatList = `file \'${existingVideo}\'\r\nfile \'${newFramesVideoName}\'\r\n`;
 
       // NOTE(james): need a unique name for the concat list since its a temp file
-      const concatListName = `tmp/${uuidString()}.txt`;
+      const concatListName = `/tmp/${uuidString()}.txt`;
       fs.writeFile(concatListName, concatList, (concatErr) => {
         if (concatErr) {
           console.error(`concat list file write failed. ${concatErr}`);
-          fs.unlink(fullNewFramesVideoName);
+          fs.unlink(newFramesVideoName);
           return reject();
         } else {
-          // NOTE(james): change here if you want final video to be in tmp folder
-          const finalVideoName = `${uuidString()}.mp4`;
+          const finalVideoName = `/tmp/${uuidString()}.mp4`;
 
           // NOTE(james): FFmpeg concatenation docs https://trac.ffmpeg.org/wiki/Concatenate
-          let command = 'ffmpeg -y -f concat';
-          command += ` -i ${concatListName} -c copy ${finalVideoName}`;
+          const args = [
+            '-y',
+            '-loglevel', 'warning',
+            '-f', 'concat',
+            '-i', concatListName,
+            '-c', 'copy',
+            finalVideoName,
+          ];
 
-          return exec(command, (ffmpegErr) => {
-            if (ffmpegErr) {
-              console.error(`ffmpeg concat failed. ${ffmpegErr}`);
-              fs.unlink(fullNewFramesVideoName);
-              fs.unlink(concatListName);
-              return reject();
-            } else {
-              fs.unlink(fullNewFramesVideoName); // NOTE(james): deleting the temp video
-              fs.unlink(concatListName); // NOTE(james): deleting the concatList
-
-              console.log('Concatenated video.');
-              return resolve(finalVideoName);
+          console.log('Concatenating videos', args);
+          exec(['ffmpeg', ...args].join(' '), (err, stdout, stderr) => {
+            if (err) {
+              console.error('Error while running ffmpeg', err);
+              return reject(err);
             }
-          });
+            console.log('ffmpeg out', stdout);
+            console.log('ffmpeg err', stderr);
+            resolve(finalVideoName);
+          })
         }
       });
     });
@@ -201,8 +167,8 @@ an absolute path or relative to the tmp folder. Must be an mp4
 */
 exports.convert = function ffmpegWrapped(fileDirectory, fps, existingVideo) {
   let func;
-  if (typeof existingVideo === 'undefined') {
-    func = ffmpegCreateVideoFromFrames(fileDirectory, fps, false);
+  if (!existingVideo) {
+    func = ffmpegCreateVideoFromFrames(fileDirectory, fps);
   } else {
     func = ffmpegAppendFrames(fileDirectory, fps, existingVideo);
   }

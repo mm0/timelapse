@@ -4,7 +4,7 @@ import fs from 'fs';
 import uuid from 'node-uuid';
 import AWS from 'aws-sdk';
 
-import ffmpeg from './ffmpeg';
+import ffmpeg from './ffmpegWrapper';
 
 const DEFAULT_FPS = 30;
 
@@ -28,6 +28,18 @@ function zp(n, c) {
   }
 }
 
+function s3Upload(params) {
+  return new Promise((resolve, reject) => {
+    s3.upload(params, (err, res) => {
+      if (err) {
+        console.error(err);
+        return reject(new Error(`Error while storing ${params.Key}: ${err}`));
+      }
+      return resolve(res);
+    })
+  })
+}
+
 function downloadObject({ bucket, key, dest }) {
   return new Promise((resolve, reject) => {
     const stream = s3.getObject({
@@ -43,14 +55,14 @@ function downloadObject({ bucket, key, dest }) {
 async function processVideo(event) {
   // get cam index
   console.log('Updating video', event);
-  const allImages = s3.getObject({
+  const allImages = await s3.getObject({
     Bucket: event.bucket,
     Key: `${event.cam}/index.txt`,
   }).promise().then(data => data.Body.toString().split('\n'));
 
   // get last image added to video
-  console.log('Getting last index')
-  const lastIndex = s3.getObject({
+  console.log('Getting last index', allImages)
+  const lastIndex = await s3.getObject({
     Bucket: event.bucket,
     Key: `${event.cam}/last-video-index.txt`,
   }).promise().catch(forgivingNoSuchKey).then(data => data.Body.toString());
@@ -65,9 +77,9 @@ async function processVideo(event) {
   // downloading all new images to tmp dir
   console.log('Downloading new images', images.length);
   await Promise.all(images.map((image, i) => downloadObject({
-    bucket: event.bucket ,
-    key: `full/${event.cam}/${image}`,
-    dest: `${tmpDir}/${zp(i, 3)}`,
+    bucket: event.bucket,
+    key: `full/${event.cam}/${image}.jpg`,
+    dest: `${tmpDir}/${zp(i, 3)}.jpg`,
   })));
 
   const prevVideo = lastIndex ?
@@ -78,25 +90,39 @@ async function processVideo(event) {
   }) : false;
 
   console.log('Creating new video file');
-  const newVideo = await ffmpeg.convert(tmpDir, DEFAULT_FPS, prevVideo);
+  const newVideo = await ffmpeg.convert(tmpDir, event.fps || DEFAULT_FPS, prevVideo);
 
-  console.log('Uploading new video and last index');
+  console.log('Uploading new video and last index', newVideo);
   const res = await Promise.all([
-    s3.upload({
+    s3Upload({
       Bucket: event.bucket,
       Key: `${event.cam}/video.mp4`,
       Body: fs.createReadStream(newVideo),
       CacheControl: 'no-cache',
       ContentType: 'video/mp4',
-    }).promise(),
-    s3.upload({
+    }),
+    s3Upload({
       Bucket: event.bucket,
       Key: `${event.cam}/last-video-index.txt`,
       Body: images[images.length - 1],
       CacheControl: 'no-cache',
       ContentType: 'text/text',
-    }).promise(),
+    }),
   ]);
+
+  // cleaning up
+  console.log('Clearing temp files');
+  const clearItems = [
+    fsp.unlink(newVideo),
+    fsp.rmdir(tmpDir),
+  ];
+
+  if (lastIndex) {
+    clearItems.push(fsp.unlink(`${tmpDir}-video.mp4`));
+  }
+
+  await Promise.all(clearItems);
+
   return res;
 }
 

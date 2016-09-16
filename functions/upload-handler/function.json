@@ -2,8 +2,6 @@
   "description": "Hubsy Timelapse image upload handler",
   "timeout": 300,
   "memory": 512,
-  "memory": 128,
-  "timeout": 5,
   "runtime": "nodejs4.3",
   "handler": "lib.default",
   "hooks": {

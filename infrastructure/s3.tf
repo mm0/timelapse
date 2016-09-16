@@ -9,7 +9,10 @@ resource "aws_s3_bucket" "storage_bucket" {
     {
       "Action": "s3:GetObject",
       "Effect": "Allow",
-      "Resource": "arn:aws:s3:::${var.storage_bucket_name}/*/resized/*",
+      "Resource": [
+        "arn:aws:s3:::${var.storage_bucket_name}/*/resized/*",
+        "arn:aws:s3:::${var.storage_bucket_name}/*/video.mp4"
+      ],
       "Principal": "*"
     }
   ]
