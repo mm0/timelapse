@@ -70,13 +70,12 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps) {
         // https://trac.ffmpeg.org/wiki/Create%20a%20video%20slideshow%20from%20images
 
         const args = [
-          '-y',
-          '-loglevel', 'debug',
-          '-framerate', fps,
           '-i', `${imageDirectory}/%03d.jpg`,
+          '-framerate', fps,
           '-c:v', 'libx264',
           '-r', '30',
           '-pix_fmt', 'yuv420p',
+          '-y',
           fullFileName,
         ];
 
@@ -127,11 +126,10 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo) {
 
           // NOTE(james): FFmpeg concatenation docs https://trac.ffmpeg.org/wiki/Concatenate
           const args = [
-            '-y',
-            '-loglevel', 'warning',
-            '-f', 'concat',
             '-i', concatListName,
+            '-f', 'concat',
             '-c', 'copy',
+            '-y',
             finalVideoName,
           ];
 

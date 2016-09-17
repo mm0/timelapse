@@ -1,6 +1,7 @@
 import λ from 'apex.js';
-import fsp from 'fs.promised';
 import fs from 'fs';
+import fsp from 'fs.promised';
+import rmfr from 'rmfr';
 import uuid from 'node-uuid';
 import AWS from 'aws-sdk';
 
@@ -114,7 +115,7 @@ async function processVideo(event) {
   console.log('Clearing temp files');
   const clearItems = [
     fsp.unlink(newVideo),
-    fsp.rmdir(tmpDir),
+    rmfr(tmpDir),
   ];
 
   if (lastIndex) {
