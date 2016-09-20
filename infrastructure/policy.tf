@@ -1,6 +1,6 @@
 resource "aws_iam_policy" "lambda-policy" {
     name = "timelapse_lambda_function_policy"
-    description = "Policy to allow lamda access to s3"
+    description = "Policy to allow lamda to access s3"
     policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -41,4 +41,28 @@ POLICY
 resource "aws_iam_role_policy_attachment" "lambda-policy-attach" {
   role = "${element(split("/", "${var.apex_function_role}"),1)}"
   policy_arn = "${aws_iam_policy.lambda-policy.arn}"
+}
+
+resource "aws_iam_policy" "camera-policy" {
+    name = "timelapse_camera_policy"
+    description = "Policy to allow cameras to access s3"
+    policy = <<POLICY
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:AbortMultipartUpload",
+                "s3:GetAccelerateConfiguration",
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*/full/*"
+            ]
+        }
+    ]
+}
+POLICY
+
 }
