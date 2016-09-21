@@ -222,25 +222,30 @@ function cropImage(event, crop) {
 function resizeImageAndUpdateIndex(event, resize, index) {
   console.log('Resizing image', resize);
   return new Promise((resolve, reject) => {
-    const stream = gm(event.tmpFile)
+    gm(event.tmpFile)
     // TODO: Do we check for the original image size? Only Shrink Larger Images ('>' flag)
     .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
     // TODO: Specify an interpolation method to try a few different ones. Start with bicubic.
     .quality(100 - (resize.compression || DEFAULT_COMPRESSION))
-    .stream();
-
-    s3.upload({
-      Bucket: event.bucket.name,
-      Key: `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
-      ContentType: 'image/jpeg', // TODO: Move MIME types to a constant.
-      Body: stream,
-    }, (err, data) => {
-      if (err) {
-        console.error(err);
-        return reject(new Error(`Error while resizing '${resize.folder}' image: ${err}`));
+    .stream((err, stdout, stderr) => {
+      if(err) {
+        console.error('Error while resizing', resize, stderr);
+        return reject(err);
       }
-      return resolve(data);
+      s3.upload({
+        Bucket: event.bucket.name,
+        Key: `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
+        ContentType: 'image/jpeg', // TODO: Move MIME types to a constant.
+        Body: stdout,
+      }, (err, data) => {
+        if (err) {
+          console.error(err);
+          return reject(new Error(`Error while resizing '${resize.folder}' image: ${err}`));
+        }
+        return resolve(data);
+      });
     });
+
   }).then((res) => Promise.all(Object.keys(index).map(idx => new Promise((resolve, reject) => {
     const absUrl = /(.*)\/([^\/]*)$/.exec(res.Location)[1];
     const key = `${event.image.cam}/${resize.folder}/idx/${idx}.txt`;
