@@ -234,7 +234,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
       Key: `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
       ContentType: 'image/jpeg', // TODO: Move MIME types to a constant.
       Body: stream,
-    }).send((err, data) => {
+    }, (err, data) => {
       if (err) {
         console.error(err);
         return reject(new Error(`Error while resizing '${resize.folder}' image: ${err}`));
@@ -250,7 +250,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
       Key: key,
       ContentType: 'text/text',
       Body: index[idx].map(name => `${absUrl}/${name}.jpg`).join('\n') || '\n',
-    }).send((err, data) => {
+    }, (err, data) => {
       if (err) {
         console.error(err);
         return reject(new Error(`Error while updating '${resize.folder} 'index image: ${err}`));
