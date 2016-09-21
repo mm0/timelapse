@@ -170,7 +170,7 @@ Images are resized to multiple smaller sizes as per this section of the config f
 
 When a new file is placed into the bucket the λ-function checks if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. Images are rotated to the set orientation and the exif orientation tag is removed for compatibility.
 
-Please note that by default the upload-handler λ-function is configured with 512MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
+Please note that by default the upload-handler λ-function is configured with 512MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase it by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
 
 # Video
 
