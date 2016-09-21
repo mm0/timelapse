@@ -8,7 +8,7 @@ import AWS from 'aws-sdk';
 import ffmpeg from './ffmpegWrapper';
 
 const DEFAULT_FPS = 30;
-const FRAME_LIMIT = 20;
+const FRAME_LIMIT = 10;
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
@@ -89,14 +89,18 @@ async function processVideo(event) {
     dest: `${tmpDir}/${zp(i, 3)}.jpg`,
   })));
 
-  const prevVideo = lastIndex ?
-  await downloadObject({
-    bucket: event.bucket ,
-    key: `${event.cam}/video.mp4`,
-    dest: `${tmpDir}-video.mp4`,
-  }) : false;
+  let prevVideo = false;
 
-  console.log('Creating new video file');
+  if (lastIndex) {
+    prevVideo = `${tmpDir}-video.mp4`;
+    await downloadObject({
+      bucket: event.bucket,
+      key: `${event.cam}/video.mp4`,
+      dest: prevVideo,
+    });
+  }
+
+  console.log('Creating new video file', prevVideo);
   const newVideo = await ffmpeg.convert(tmpDir, event.fps || DEFAULT_FPS, prevVideo);
 
   console.log('Uploading new video and last index', newVideo);
