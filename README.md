@@ -256,3 +256,19 @@ Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/Amaz
 </CORSConfiguration>
 ```
 *AllowedOrigin* tag can have `*` if you want any website to embed your slideshow or a specific domain name, including http-part, e.g. `http://www.example2.com` to limit it to your website only.
+
+#Resources
+
+This section is a guide to how much resources you may need to allocate depending on the amounts of data and usage scenarios.
+
+###Images
+
+* S5, full reso, 5312x2988px, 5-7MB
+* resized to 720x640px, 50kb | 1280x720px, 80kb | 1920x1080px, 200mb
+* time to process a full reso image into the 3 resized images and update the indexes: 24s (an awful lot!)
+
+###Video
+
+* xxx full reso S5 images produce yyymb of mp4 video in zzz minutes ([insert lambda config here])
+
+
