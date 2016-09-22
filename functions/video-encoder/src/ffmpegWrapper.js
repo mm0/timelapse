@@ -130,8 +130,8 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo) {
           const args = [
             '-v', '9',
             '-loglevel', '99',
-            '-i', concatListName,
             '-f', 'concat',
+            '-i', concatListName,
             '-c', 'copy',
             '-y',
             finalVideoName,
