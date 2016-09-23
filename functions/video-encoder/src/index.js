@@ -30,6 +30,10 @@ function zp(n, c) {
   }
 }
 
+function parseJsonBody(data) {
+  return JSON.parse(data.Body.toString() || '{}');
+}
+
 function s3Upload(params) {
   return new Promise((resolve, reject) => {
     s3.upload(params, (err, res) => {
@@ -54,9 +58,31 @@ function downloadObject({ bucket, key, dest }) {
   })
 }
 
+// Get config details from the bucket level and the camera level and merge them
+function getConfig(event) {
+  return Promise.all([
+    s3.getObject({
+      Bucket: event.bucket,
+      Key: 'config.json',
+    }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
+    s3.getObject({
+      Bucket: event.bucket,
+      Key: `${event.cam}/config.json`,
+    }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
+  ])
+  .then(configs => Object.assign({}, configs[0], configs[1]))
+  .catch(err => {
+    console.error(err);
+    throw new Error(`Error while reading configs: ${err}`);
+  });
+}
+
 async function processVideo(event) {
+  // get config
+  const config = await getConfig(event);
+
   // get cam index
-  console.log('Updating video', event);
+  console.log('Updating video', event, config);
   const allImages = await s3.getObject({
     Bucket: event.bucket,
     Key: `${event.cam}/index.txt`,
@@ -101,7 +127,12 @@ async function processVideo(event) {
   }
 
   console.log('Creating new video file', prevVideo);
-  const newVideo = await ffmpeg.convert(tmpDir, event.fps || DEFAULT_FPS, prevVideo);
+  const newVideo = await ffmpeg.convert(
+    tmpDir,
+    event.fps || config.video.fps || DEFAULT_FPS,
+    prevVideo,
+    config.video.width ? [config.video.width, config.video.height] : null,
+  );
 
   console.log('Uploading new video and last index', newVideo);
   const res = await Promise.all([
