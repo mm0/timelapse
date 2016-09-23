@@ -2,9 +2,7 @@ Hubsy Timelapse uses AWS infrastructure to create timelapse videos and slideshow
 
 # Overview
 
-This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are small automous cams with high resolution sensors, WiFi and cellular connectivity and either battery or solar power supply.
-
-Here is how it all works.
+This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are small autonomous cams with high resolution sensors, WiFi and cellular connectivity and either battery or solar power supply.
 
 1. Put your hubsy up and point it in the direction of the action
 2. Your hubsy will start uploading images to an S3 bucket.
@@ -12,14 +10,42 @@ Here is how it all works.
 3.a. The image is processed (cropped, resized, exif cleaned up, etc)
 3.b. The image is added to the timelapse video and uploaded to YouTube, if want to make it public
 4. A rules-based workflow is triggered for further processing
-5. A lambda funtion can be called via HTTP to retrive a list of file names for a slideshow given a date/time range
+5. A lambda function can be called via HTTP to retrieve a list of file names for a slideshow given a date/time range
 6. A JavaScript slideshow can be embedded into your website to show the last N images
 
 # Image processing with a λ-function
 
 ### Set up
+1. Install [Terraform](https://www.terraform.io/intro/getting-started/install.html).
 
-The code for the λ-function is located in master branch. Use [???] package from [???] to upload to AWS. Use IAM and S3 policies from this document to configure security and access.
+2. Install [Apex](http://apex.run).
+
+  On macOS, Linux, or OpenBSD run the following:
+
+  ```bash
+  curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
+  ```
+
+3. Install dependencies:
+```bash
+npm install
+```
+4. Set your AWS configuration.
+
+5. Set your desired s3 bucket name as env variable:
+```bash
+export TF_VAR_storage_bucket_name=my-hubsy-image-bucket-name
+```
+
+6. Deploy functions and apply your infrastructure:
+```bash
+apex init
+apex deploy
+apex infra apply
+```
+
+7. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
+
 
 ### S3 storage
 
@@ -144,6 +170,8 @@ Images are resized to multiple smaller sizes as per this section of the config f
 
 When a new file is placed into the bucket the λ-function checks if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. Images are rotated to the set orientation and the exif orientation tag is removed for compatibility.
 
+Please note that by default the upload-handler λ-function is configured with 512MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase it by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
+
 # Video
 
 Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file. **Not implemented**
@@ -162,9 +190,9 @@ Insert this HTML placeholder wherever you want to see the slideshow:
 <div class="swiper-container">
     <div class="swiper-wrapper"></div>
     <!-- Pagination (optional) -->
-    <div class="swiper-pagination swiper-pagination-white"></div> 
+    <div class="swiper-pagination swiper-pagination-white"></div>
     <!-- Navigation (optional) -->
-    <div class="swiper-button-next swiper-button-white"></div> 
+    <div class="swiper-button-next swiper-button-white"></div>
     <div class="swiper-button-prev swiper-button-white"></div>
 </div>
 ```
@@ -228,3 +256,19 @@ Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/Amaz
 </CORSConfiguration>
 ```
 *AllowedOrigin* tag can have `*` if you want any website to embed your slideshow or a specific domain name, including http-part, e.g. `http://www.example2.com` to limit it to your website only.
+
+#Resources
+
+This section is a guide to how much resources you may need to allocate depending on the amounts of data and usage scenarios.
+
+###Images
+
+* S5, full reso, 5312x2988px, 5-7MB
+* resized to 720x640px, 50kb | 1280x720px, 80kb | 1920x1080px, 200mb
+* time to process a full reso image into the 3 resized images and update the indexes: 24s (an awful lot!)
+
+###Video
+
+* xxx full reso S5 images produce yyymb of mp4 video in zzz minutes ([insert lambda config here])
+
+

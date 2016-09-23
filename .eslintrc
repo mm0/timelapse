@@ -1,4 +1,9 @@
-extends: airbnb
+extends: eslint:recommended
+parser: babel-eslint
+env:
+  node: true
+globals:
+  Promise: true
+  Set: true
 rules:
-  no-console: off
-  strict: off
+  no-console: 0
