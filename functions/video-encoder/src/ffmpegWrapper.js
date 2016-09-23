@@ -163,6 +163,7 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
               const concatArgs = [
                 //'-v', '9',
                 //'-loglevel', '99',
+                '-safe', '0',
                 '-f', 'concat',
                 '-i', concatListName,
                 '-c', 'copy',
