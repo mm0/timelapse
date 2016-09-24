@@ -111,7 +111,7 @@ async function processVideo(event) {
   console.log('Downloading new images', images.length);
   await Promise.all(images.map((image, i) => downloadObject({
     bucket: event.bucket,
-    key: `full/${event.cam}/${image}.jpg`,
+    key: config.source ? `${event.cam}/${config.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`,
     dest: `${tmpDir}/${zp(i, 3)}.jpg`,
   })));
 
