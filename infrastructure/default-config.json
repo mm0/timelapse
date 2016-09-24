@@ -20,5 +20,11 @@
       "height": 1080,
       "compression": 90
     }
-  ]
+  ],
+  "video": {
+    "width": 1920,
+    "height": 1080,
+    "source": "resized/fhd",
+    "fps": 30
+  }
 }
