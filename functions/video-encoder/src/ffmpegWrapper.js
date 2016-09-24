@@ -12,6 +12,8 @@ const fs = require('fs');
 // NOTE(james): need a unique name for temp files
 const uuid = require('node-uuid');
 
+const ffprobe = require('ffprobe');
+
 // NOTE(jamse): depends on https://github.com/broofa/node-uuid
 function uuidString() {
   const uuidArray = new Array(32);
@@ -46,12 +48,13 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
         // NOTE(james): FFMPEG images to video docs
         // https://trac.ffmpeg.org/wiki/Create%20a%20video%20slideshow%20from%20images
 
-
-        // NOTE(james): use provided resolution, or go to default behavior
-        let args = [];
-        if (resolution != null) {
+        ffprobe(`${imageDirectory}/001.jpg`, { path: 'ffprobe'}).then(ffprobeInfo => {
+          if (!resolution) {
+            resolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
+            console.log("got resolution");
+          }
           let resolutionArg = `scale=${resolution[0]}:${resolution[1]}`;
-          args = [
+          const args = [
             //'-v', '9',
             //'-loglevel', '99',
             '-framerate', fps,
@@ -63,33 +66,22 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
             '-y',
             fullFileName,
           ];
-        } else {
-          args = [
-            //'-v', '9',
-            //'-loglevel', '99',
-            '-framerate', fps,
-            '-i', `${imageDirectory}/%03d.jpg`,
-            '-c:v', 'libx264',
-            '-r', '30',
-            '-pix_fmt', 'yuv420p',
-            '-y',
-            fullFileName,
-          ];
-        }
 
-        // NOTE(james): final command should be something like
-        // ffmpeg -y -framerate FPS -i IMAGEDIR/%03d.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4
-        console.log('Creating video from frames...', args);
-        exec(['ffmpeg', ...args].join(' '), (err, stdout, stderr) => {
-          if (err) {
-            console.error('Error while running ffmpeg', err);
-            return reject(err);
-          }
-          console.log('ffmpeg out', stdout);
-          console.log('ffmpeg err', stderr);
-          resolve(fullFileName);
-        })
-
+          // NOTE(james): final command should be something like
+          // ffmpeg -y -framerate FPS -i IMAGEDIR/%03d.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4
+          console.log('Creating video from frames...', args);
+          exec(['ffmpeg', ...args].join(' '), (err, stdout, stderr) => {
+            if (err) {
+              console.error('Error while running ffmpeg', err);
+              return reject(err);
+            }
+            console.log('ffmpeg out', stdout);
+            console.log('ffmpeg err', stderr);
+            resolve(fullFileName);
+          })
+        }).catch(ffprobeError => {
+          console.error(ffprobeError);
+        });
       }
     });
   });
@@ -99,41 +91,44 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
 // appends that video to the existingVideo
 function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
   return new Promise((resolve, reject) => {
-    var createVideoFromFramesFunc;
-    if (resolution != null) {
-      createVideoFromFramesFunc = ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution);
-    } else {
-      createVideoFromFramesFunc = ffmpegCreateVideoFromFrames(imageDirectory, fps);
-    }
-    createVideoFromFramesFunc.then(newFramesVideoName => {
-      console.log('Concatenating video...');
-    /*
-      NOTE(james): ffmpeg needs a list of files to be concatenated, so the output
-      of this file is something like
+    ffprobe(existingVideo, { path: 'ffprobe'}).then(ffprobeInfo => {
+      var existingVideoResolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
 
-      file 'existingVideo.mp4'
-      file 'newFramesVideoOuput.mp4'
+      // NOTE(james): if a resolution wasn't provided, maintain existing video resolution
+      var newFramesVideoResolution = (resolution) ? resolution : existingVideoResolution;
+      ffmpegCreateVideoFromFrames(imageDirectory, fps, newFramesVideoResolution).then(newFramesVideoName => {
+        console.log('Concatenating video...');
 
-      The concatenation file is deleted at the end of this program
-    */
-      const concatList = `file \'${existingVideo}\'\r\nfile \'${newFramesVideoName}\'\r\n`;
+        /*
+          NOTE(james): ffmpeg needs a list of files to be concatenated, so the output
+          of this file is something like
 
-      const concatListName = `/tmp/${uuidString()}.txt`;
-      fs.writeFile(concatListName, concatList, (concatErr) => {
-        if (concatErr) {
-          console.error(`concat list file write failed. ${concatErr}`);
-          fs.unlink(newFramesVideoName);
-          return reject();
-        } else {
-          /*
-            NOTE(james): resize old video before appending, in case we are starting to use a new size
-            TODO(james): This could be skipped if you can extract the video's scale from it's metadata and '
-            check if it's different from the requested size. Check out https://www.npmjs.com/package/node-ffprobe
-          */
-          let args = [];
-          if (resolution != null) {
-            let resolutionArg = `scale=${resolution[0]}:${resolution[1]}`;
-            args = [
+          file 'existingVideo.mp4'
+          file 'newFramesVideoOuput.mp4'
+
+          The concatenation file is deleted at the end of this program
+        */
+        const concatList = `file \'../${existingVideo}\'\r\nfile \'../${newFramesVideoName}\'\r\n`;
+
+        const concatListName = `/tmp/${uuidString()}.txt`;
+        console.log(concatListName);
+        fs.writeFile(concatListName, concatList, (concatErr) => {
+          if (concatErr) {
+            console.error(`concat list file write failed. ${concatErr}`);
+            fs.unlink(newFramesVideoName);
+            return reject();
+          } else {
+            /*
+              NOTE(james): resize old video before appending, in case we are starting to use a new size
+              TODO(james): This could be skipped by checking resolution vs existingVideoResolution,
+              but I'm not sure how to have an optional promise-then here
+            */
+
+            if (!resolution) {
+              resolution = existingVideoResolution;
+            }
+            const resolutionArg = `scale=${resolution[0]}:${resolution[1]}`;
+            const args = [
               //'-v', '9',
               //'-loglevel', '99',
               '-i', existingVideo,
@@ -141,50 +136,44 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
               '-y',
               existingVideo,
             ];
-          } else {
-            args = [
-              //'-v', '9',
-              //'-loglevel', '99',
-              '-i', existingVideo,
-              '-y',
-              existingVideo,
-            ];
+
+            exec(['ffmpeg', ...args].join(' '), (resizeErr, resizeStdOut, resizeStdErr) => {
+              if (resizeErr) {
+                console.error(`resizing existing video failed. ${resizeStdErr}`)
+                fs.unlink(newFramesVideoName);
+                return reject();
+              } else {
+                const finalVideoName = `/tmp/${uuidString()}.mp4`;
+
+                // NOTE(james): FFmpeg concatenation docs https://trac.ffmpeg.org/wiki/Concatenate
+                const concatArgs = [
+                  //'-v', '9',
+                  //'-loglevel', '99',
+                  '-safe', 0,
+                  '-f', 'concat',
+                  '-i', concatListName,
+                  '-c', 'copy',
+                  '-y',
+                  finalVideoName,
+                ];
+
+                console.log('Concatenating videos', concatArgs);
+                exec(['ffmpeg', ...concatArgs].join(' '), (err, stdout, stderr) => {
+                  if (err) {
+                    console.error('Error while running ffmpeg', err);
+                    return reject(err);
+                  }
+                  console.log('ffmpeg out', stdout);
+                  console.log('ffmpeg err', stderr);
+                  resolve(finalVideoName);
+                })
+              }
+            })
           }
-
-          exec(['ffmpeg', ...args].join(' '), (resizeErr, resizeStdOut, resizeStdErr) => {
-            if (resizeErr) {
-              console.error(`resizing existing video failed. ${resizeStdErr}`)
-              fs.unlink(newFramesVideoName);
-              return reject();
-            } else {
-              const finalVideoName = `/tmp/${uuidString()}.mp4`;
-
-              // NOTE(james): FFmpeg concatenation docs https://trac.ffmpeg.org/wiki/Concatenate
-              const concatArgs = [
-                //'-v', '9',
-                //'-loglevel', '99',
-                '-safe', '0',
-                '-f', 'concat',
-                '-i', concatListName,
-                '-c', 'copy',
-                '-y',
-                finalVideoName,
-              ];
-
-              console.log('Concatenating videos', args);
-              exec(['ffmpeg', ...concatArgs].join(' '), (err, stdout, stderr) => {
-                if (err) {
-                  console.error('Error while running ffmpeg', err);
-                  return reject(err);
-                }
-                console.log('ffmpeg out', stdout);
-                console.log('ffmpeg err', stderr);
-                resolve(finalVideoName);
-              })
-            }
-          })
-        }
+        });
       });
+    }).catch(ffprobeError => {
+      console.error(ffprobeError);
     });
   });
 }
@@ -205,23 +194,17 @@ an absolute path or relative to the tmp folder. Must be an mp4
 
 resolution array [width,height](optional): define an output resolution for the video. Any
 inputs that are a different resolution from this will be uniformly scaled until the width or
-height matches the requested resolution, then letterboxed.
-TODO(james): If this param is omitted and the resolutions are mixed, it does a bad non-uniform scale
+height matches the requested resolution, then letterboxed. If this param is omitted, the determined
+resolution depends on if there is an existing video or not.if there is an existing video, the output
+will  be the same resolution. Otherwise, the video is the resolution of the first image in the series
+provided.
 */
 exports.convert = function ffmpegWrapped(fileDirectory, fps, existingVideo, resolution) {
   let func;
   if (!existingVideo) {
-    if (!resolution) {
-      func = ffmpegCreateVideoFromFrames(fileDirectory, fps);
-    } else {
-      func = ffmpegCreateVideoFromFrames(fileDirectory, fps, resolution);
-    }
+    func = ffmpegCreateVideoFromFrames(fileDirectory, fps, resolution);
   } else {
-    if (!resolution) {
-      func = ffmpegAppendFrames(fileDirectory, fps, existingVideo);
-    } else {
-      func = ffmpegAppendFrames(fileDirectory, fps, existingVideo, resolution);
-    }
+    func = ffmpegAppendFrames(fileDirectory, fps, existingVideo, resolution);
   }
   return func;
 };
