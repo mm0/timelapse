@@ -12,9 +12,9 @@ const fs = require('fs');
 // NOTE(james): need a unique name for temp files
 const uuid = require('node-uuid');
 
-const ffprobe = require('ffprobe');
+const ffprobe = require('node-ffprobe');
 
-// NOTE(jamse): depends on https://github.com/broofa/node-uuid
+// NOTE(james): depends on https://github.com/broofa/node-uuid
 function uuidString() {
   const uuidArray = new Array(32);
   uuid.v1(null, uuidArray, 0);
@@ -48,10 +48,12 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
         // NOTE(james): FFMPEG images to video docs
         // https://trac.ffmpeg.org/wiki/Create%20a%20video%20slideshow%20from%20images
 
-        ffprobe(`${imageDirectory}/001.jpg`, { path: 'ffprobe'}).then(ffprobeInfo => {
+        ffprobe(`${imageDirectory}/001.jpg`, (ffprobeErr, ffprobeInfo) => {
+          if (ffprobeErr) {
+			return reject(err);
+          }
           if (!resolution) {
             resolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
-            console.log("got resolution");
           }
           let resolutionArg = `scale=${resolution[0]}:${resolution[1]}`;
           const args = [
@@ -79,8 +81,6 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
             console.log('ffmpeg err', stderr);
             resolve(fullFileName);
           })
-        }).catch(ffprobeError => {
-          console.error(ffprobeError);
         });
       }
     });
@@ -91,7 +91,10 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
 // appends that video to the existingVideo
 function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
   return new Promise((resolve, reject) => {
-    ffprobe(existingVideo, { path: 'ffprobe'}).then(ffprobeInfo => {
+    ffprobe(existingVideo, (ffprobeErr, ffprobeInfo) => {
+      if (ffprobeErr) {
+		return reject(ffprobeErr);
+      }
       var existingVideoResolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
 
       // NOTE(james): if a resolution wasn't provided, maintain existing video resolution
@@ -115,7 +118,6 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
         fs.writeFile(concatListName, concatList, (concatErr) => {
           if (concatErr) {
             console.error(`concat list file write failed. ${concatErr}`);
-            fs.unlink(newFramesVideoName);
             return reject();
           } else {
             /*
@@ -139,8 +141,7 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
 
             exec(['ffmpeg', ...args].join(' '), (resizeErr, resizeStdOut, resizeStdErr) => {
               if (resizeErr) {
-                console.error(`resizing existing video failed. ${resizeStdErr}`)
-                fs.unlink(newFramesVideoName);
+                console.error(`resizing existing video failed. ${resizeStdErr}`);
                 return reject();
               } else {
                 const finalVideoName = `/tmp/${uuidString()}.mp4`;
@@ -172,8 +173,6 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
           }
         });
       });
-    }).catch(ffprobeError => {
-      console.error(ffprobeError);
     });
   });
 }
