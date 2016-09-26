@@ -1,5 +1,5 @@
 resource "aws_iam_policy" "lambda-policy" {
-    name = "timelapse_lambda_function_policy"
+    name = "timelapse_lambda_function_policy_${aws_s3_bucket.storage_bucket.bucket}"
     description = "Policy to allow lamda to access s3"
     policy = <<POLICY
 {
@@ -44,7 +44,7 @@ resource "aws_iam_role_policy_attachment" "lambda-policy-attach" {
 }
 
 resource "aws_iam_policy" "camera-policy" {
-    name = "timelapse_camera_policy"
+    name = "timelapse_camera_policy_${aws_s3_bucket.storage_bucket.bucket}"
     description = "Policy to allow cameras to access s3"
     policy = <<POLICY
 {

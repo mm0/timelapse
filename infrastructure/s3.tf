@@ -44,7 +44,7 @@ resource "aws_s3_bucket_object" "default-config" {
 
 
 resource "aws_lambda_permission" "allow_bucket" {
-    statement_id = "AllowExecutionFromS3Bucket"
+    statement_id = "AllowExecutionFromS3Bucket_${aws_s3_bucket.storage_bucket.bucket}"
     action = "lambda:InvokeFunction"
     function_name = "${var.apex_function_upload-handler}"
     principal = "s3.amazonaws.com"
