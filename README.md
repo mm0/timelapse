@@ -156,6 +156,7 @@ echo '{"bucket": "BUCKET-NAME", "cam", "CAM-NAME"}' | apex invoke video-encoder
 or by clicking test on AWS Lambda Management Console and providing the same event.
 
 To make things automated you can use AWS CloudWatch Scheduled events to run video-encoder on schedule for each cam. To do so:
+
 1. Go to AWS > CloudWatch > Events > Create Rule
 2. Choose *Scedule* as event source
 3. Click add target and select *video-encoder* Lambda function
