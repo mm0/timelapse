@@ -30,7 +30,12 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
 ```bash
 npm install
 ```
-4. Set your AWS configuration.
+4. Set your AWS configuration and region. using `aws configure` cli command or:
+```bash
+export AWS_ACCESS_KEY_ID=***
+export AWS_SECRET_ACCESS_KEY=***
+export AWS_REGION=us-east-1
+```
 
 5. Set your desired s3 bucket name as env variable:
 ```bash
