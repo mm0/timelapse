@@ -174,8 +174,20 @@ Please note that by default the upload-handler λ-function is configured with 51
 
 # Video
 
-Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file. **Not implemented**
+1 or more frames are added to the end of the video at a time.
 
+  ```
+  {
+    "width": 1920,
+    "height": 1080,
+    "source": "resized/fhd",
+    "fps": 30
+  }
+  ```
+  
+* **width**, **height**: resolution of the output video. If this is omitted and there is not existing video yet, the resolution of the output video will be the size of the first image provided. Otherwise the resolution of the existing video will prevail. If the resolution provided is different from the resolution of either of the inputs, the inputs will be uniformly scaled to meet the provided resolution. If there is an aspect ratio discrepancy they will be uniformly scaled until their the width or height is matched, then other axis will be letterboxed.
+* **source**: folder name to find images, relative to the camera root. It's just an object prefix in the context of S3.
+* **fps** - this is how fast the images should change in the video. The video will play at a a steady 30 FPS, so this just affects how many frames the images are duplicated for. Must be <= 30
 
 # Slideshow
 
