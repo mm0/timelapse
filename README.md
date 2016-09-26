@@ -118,31 +118,31 @@ When a new file is placed into the bucket the λ-function checks if it's a valid
 
 Please note that by default the upload-handler λ-function is configured with 512MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase it by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
 
-# Video
+# Timelapse video
 
-Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file.
+A timelapse video can be created on request by calling `timelapse_video-encoder` λ-function that either appends new images to an existing video or creates a new one. Video parameters are placed in the config file for the bucket / camera.
 
-    {
-      "video": {
-        "source": "resized/fhd",
-        "width": 1920,
-        "height": 1080,
-        "fps": 30
-      }
-    }
+  ```
+  {
+    "width": 1920,
+    "height": 1080,
+    "source": "resized/fhd",
+    "fps": 30
+  }
+  ```
 
-* **source**: source of image files to be appended to video, you can choose a resized folder form *resize* section. Not seting it makes the video-encoder use images from *full* folder.
-* **width**, **height**: the maximum size in pixels for the video. It may not be proportional to the image which has to fit into this bounding box without cropping.
-* **fps**: how many images to be used in one second of video.
+* **width**, **height**: resolution of the output video. If this is omitted and there is not existing video yet, the resolution of the output video will be the size of the first image provided. Otherwise the resolution of the existing video will prevail. If the resolution provided is different from the resolution of either of the inputs, the inputs will be uniformly scaled to meet the provided resolution. If there is an aspect ratio discrepancy they will be uniformly scaled until their the width or height is matched, then other axis will be letterboxed.
+* **source**: folder name to find images, relative to the bucket root. It's just an object prefix in the context of S3.
+* **fps**: this is how fast the images should change in the video. The video will play at a a steady 30 FPS, so this only affects how many frames the images are duplicated for. Must be <= 30.
 
-In order to run the function you should pass an event like this:
+In order to run the function you should pass an event like this to *video-encoder* λ-function:
 
     {
       "bucket": "BUCKET-NAME",
       "cam": "CAM-NAME"
     }
 
-to *video-encoder* function. you can run it using apex:
+You can also run it using apex:
 
 ```bash
 echo '{"bucket": "BUCKET-NAME", "cam", "CAM-NAME"}' | apex invoke video-encoder
@@ -150,12 +150,11 @@ echo '{"bucket": "BUCKET-NAME", "cam", "CAM-NAME"}' | apex invoke video-encoder
 
 or by clicking test on AWS Lambda Management Console and providing the same event.
 
-You can also use AWS CloudWatch Scheduled events to run video-encoder on schedule for each cam. To do so:
+To make things automated you can use AWS CloudWatch Scheduled events to run video-encoder on schedule for each cam. To do so:
 1. Go to AWS > CloudWatch > Events > Create Rule
 2. Choose *Scedule* as event source
 3. Click add target and select *video-encoder* Lambda function
 4. Configure event to constant (JSON text) and provide the above JSON event
-
 
 # Slideshow
 
