@@ -172,9 +172,9 @@ When a new file is placed into the bucket the λ-function checks if it's a valid
 
 Please note that by default the upload-handler λ-function is configured with 512MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase it by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
 
-# Video
+# Timelapse video
 
-1 or more frames are added to the end of the video at a time.
+A timelapse video can be created on request by calling `timelapse_video-encoder` λ-function that either appends new images to an existing video or creates a new one. Video parameters are placed in the config file for the bucket / camera.
 
   ```
   {
@@ -186,8 +186,9 @@ Please note that by default the upload-handler λ-function is configured with 51
   ```
   
 * **width**, **height**: resolution of the output video. If this is omitted and there is not existing video yet, the resolution of the output video will be the size of the first image provided. Otherwise the resolution of the existing video will prevail. If the resolution provided is different from the resolution of either of the inputs, the inputs will be uniformly scaled to meet the provided resolution. If there is an aspect ratio discrepancy they will be uniformly scaled until their the width or height is matched, then other axis will be letterboxed.
-* **source**: folder name to find images, relative to the camera root. It's just an object prefix in the context of S3.
-* **fps** - this is how fast the images should change in the video. The video will play at a a steady 30 FPS, so this just affects how many frames the images are duplicated for. Must be <= 30
+* **source**: folder name to find images, relative to the bucket root. It's just an object prefix in the context of S3.
+* **fps**: this is how fast the images should change in the video. The video will play at a a steady 30 FPS, so this only affects how many frames the images are duplicated for. Must be <= 30.
+
 
 # Slideshow
 
