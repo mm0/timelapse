@@ -29,7 +29,7 @@
     "babel-runtime": "^6.11.6",
     "fs.promised": "^3.0.0",
     "gm": "^1.23.0",
-    "node-ffprobe": "^1.2.2",
+    "node-ffprobe": "hubsy-io/node-ffprobe",
     "node-uuid": "^1.4.7",
     "piexifjs": "^1.0.0",
     "raw-body": "^2.1.7",

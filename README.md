@@ -94,60 +94,6 @@ Theoretically, there is no need to pre-create the camera folder if the AWS crede
 
 The λ-function creates the folders it needs on the fly. There is no need to pre-create them, unless it is required for access control purposes.
 
-#### Bucket policies
-
-The goal is to grant public access to all objects in `resized` folder.
-
-```
-{
-	"Id": "Hubsy-Public-Access-Policy",
-	"Version": "2012-10-17",
-	"Statement": [
-		{
-			"Action": "s3:GetObject",
-			"Effect": "Allow",
-			"Resource": "arn:aws:s3:::BUCKET-NAME/*/resized/*",
-			"Principal": "*"
-		}
-	]
-}
-```
-
-The λ-function has its own set of policies. It should be able to read the entire contents of the bucket, but write only into `resized` folder. This policy has to be set in IAM and attached to the role used for the function.
-
-```
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket"
-            ],
-            "Resource": "arn:aws:s3:::BUCKET-NAME"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:GetObject"
-            ],
-            "Resource": "arn:aws:s3:::BUCKET-NAME/*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:PutObject"
-            ],
-            "Resource": [
-                "arn:aws:s3:::BUCKET-NAME/*resized*",
-                "arn:aws:s3:::BUCKET-NAME/*/exif/*",
-                "arn:aws:s3:::BUCKET-NAME/*index.txt"
-            ]
-        }
-    ]
-}
-```
-
 ### Image resizing
 
 Images are resized to multiple smaller sizes as per this section of the config file:
@@ -174,7 +120,41 @@ Please note that by default the upload-handler λ-function is configured with 51
 
 # Video
 
-Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file. **Not implemented**
+Every new image is added to the end of the timelapse video. Frame duration, video size and other parameters are specified in the config file.
+
+    {
+      "video": {
+        "source": "resized/fhd",
+        "width": 1920,
+        "height": 1080,
+        "fps": 30
+      }
+    }
+
+* **source**: source of image files to be appended to video, you can choose a resized folder form *resize* section. Not seting it makes the video-encoder use images from *full* folder.
+* **width**, **height**: the maximum size in pixels for the video. It may not be proportional to the image which has to fit into this bounding box without cropping.
+* **fps**: how many images to be used in one second of video.
+
+In order to run the function you should pass an event like this:
+
+    {
+      "bucket": "BUCKET-NAME",
+      "cam": "CAM-NAME"
+    }
+
+to *video-encoder* function. you can run it using apex:
+
+```bash
+echo '{"bucket": "BUCKET-NAME", "cam", "CAM-NAME"}' | apex invoke video-encoder
+```
+
+or by clicking test on AWS Lambda Management Console and providing the same event.
+
+You can also use AWS CloudWatch Scheduled events to run video-encoder on schedule for each cam. To do so:
+1. Go to AWS > CloudWatch > Events > Create Rule
+2. Choose *Scedule* as event source
+3. Click add target and select *video-encoder* Lambda function
+4. Configure event to constant (JSON text) and provide the above JSON event
 
 
 # Slideshow
@@ -257,6 +237,60 @@ Make sure to enable [CORS on your AWS S3 bucket](http://docs.aws.amazon.com/Amaz
 ```
 *AllowedOrigin* tag can have `*` if you want any website to embed your slideshow or a specific domain name, including http-part, e.g. `http://www.example2.com` to limit it to your website only.
 
+#### Bucket policies
+
+The goal is to grant public access to all objects in `resized` folder.
+
+```
+{
+	"Id": "Hubsy-Public-Access-Policy",
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Action": "s3:GetObject",
+			"Effect": "Allow",
+			"Resource": "arn:aws:s3:::BUCKET-NAME/*/resized/*",
+			"Principal": "*"
+		}
+	]
+}
+```
+
+The λ-function has its own set of policies. It should be able to read the entire contents of the bucket, but write only into `resized` folder. This policy has to be set in IAM and attached to the role used for the function.
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:ListBucket"
+            ],
+            "Resource": "arn:aws:s3:::BUCKET-NAME"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:GetObject"
+            ],
+            "Resource": "arn:aws:s3:::BUCKET-NAME/*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::BUCKET-NAME/*resized*",
+                "arn:aws:s3:::BUCKET-NAME/*/exif/*",
+                "arn:aws:s3:::BUCKET-NAME/*index.txt"
+            ]
+        }
+    ]
+}
+```
+
 #Resources
 
 This section is a guide to how much resources you may need to allocate depending on the amounts of data and usage scenarios.
@@ -270,5 +304,3 @@ This section is a guide to how much resources you may need to allocate depending
 ###Video
 
 * xxx full reso S5 images produce yyymb of mp4 video in zzz minutes ([insert lambda config here])
-
-

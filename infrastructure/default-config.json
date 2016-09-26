@@ -12,13 +12,13 @@
       "folder": "resized/hd",
       "width": 1280,
       "height": 720,
-      "compression": 75
+      "compression": 50
     },
     {
       "folder": "resized/fhd",
       "width": 1920,
       "height": 1080,
-      "compression": 90
+      "compression": 50
     }
   ],
   "video": {
