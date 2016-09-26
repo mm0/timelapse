@@ -50,7 +50,8 @@ function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
 
         ffprobe(`${imageDirectory}/001.jpg`, (ffprobeErr, ffprobeInfo) => {
           if (ffprobeErr) {
-			return reject(err);
+            console.log('could not probe first image file, it should be named 001.jpg');
+            return reject(err);
           }
           if (!resolution) {
             resolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
@@ -93,7 +94,7 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
   return new Promise((resolve, reject) => {
     ffprobe(existingVideo, (ffprobeErr, ffprobeInfo) => {
       if (ffprobeErr) {
-		return reject(ffprobeErr);
+        return reject(ffprobeErr);
       }
       var existingVideoResolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
 
@@ -102,23 +103,30 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
       ffmpegCreateVideoFromFrames(imageDirectory, fps, newFramesVideoResolution).then(newFramesVideoName => {
         console.log('Concatenating video...');
 
+        const existingVideoNameSliced = existingVideo.slice(0, existingVideo.lastIndexOf('.'));
+        const resizedExistingVideo = `${existingVideoNameSliced}-resized.mp4`;
+        
         /*
           NOTE(james): ffmpeg needs a list of files to be concatenated, so the output
           of this file is something like
 
-          file 'existingVideo.mp4'
+          file 'resizedExistingVideo.mp4'
           file 'newFramesVideoOuput.mp4'
 
           The concatenation file is deleted at the end of this program
         */
-        const concatList = `file \'../${existingVideo}\'\r\nfile \'../${newFramesVideoName}\'\r\n`;
+        const concatList = `file \'../${resizedExistingVideo}\'\r\nfile \'../${newFramesVideoName}\'\r\n`;
 
         const concatListName = `/tmp/${uuidString()}.txt`;
         console.log(concatListName);
         fs.writeFile(concatListName, concatList, (concatErr) => {
           if (concatErr) {
             console.error(`concat list file write failed. ${concatErr}`);
-            return reject();
+            fs.unlink(concatListName, function() {
+              fs.unlink(newFramesVideoName, function() {
+                return reject();
+              });
+            });
           } else {
             /*
               NOTE(james): resize old video before appending, in case we are starting to use a new size
@@ -136,13 +144,17 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
               '-i', existingVideo,
               '-vf', resolutionArg,
               '-y',
-              existingVideo,
+              resizedExistingVideo,
             ];
 
             exec(['ffmpeg', ...args].join(' '), (resizeErr, resizeStdOut, resizeStdErr) => {
               if (resizeErr) {
                 console.error(`resizing existing video failed. ${resizeStdErr}`);
-                return reject();
+                fs.unlink(concatListName, function() {
+                  fs.unlink(newFramesVideoName, function() {
+                    return reject();
+                  });
+                });
               } else {
                 const finalVideoName = `/tmp/${uuidString()}.mp4`;
 
@@ -162,11 +174,25 @@ function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution) {
                 exec(['ffmpeg', ...concatArgs].join(' '), (err, stdout, stderr) => {
                   if (err) {
                     console.error('Error while running ffmpeg', err);
-                    return reject(err);
+                    fs.unlink(concatListName, function() {
+                      fs.unlink(newFramesVideoName, function() {
+                        fs.unlink(resizedExistingVideo, function() {
+                          return reject(err);
+                        });
+                      });
+                    });
                   }
                   console.log('ffmpeg out', stdout);
                   console.log('ffmpeg err', stderr);
-                  resolve(finalVideoName);
+                  
+                  //OPTIMIZE(james): these could run in parallel
+                  fs.unlink(concatListName, function() {
+                    fs.unlink(newFramesVideoName, function() {
+                      fs.unlink(resizedExistingVideo, function() {
+                        resolve(finalVideoName);
+                      });
+                    });
+                  });
                 })
               }
             })
