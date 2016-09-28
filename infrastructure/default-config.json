@@ -6,25 +6,26 @@
       "folder": "resized/sd",
       "width": 640,
       "height": 720,
-      "compression": 50
+      "quality": 50
     },
     {
       "folder": "resized/hd",
       "width": 1280,
       "height": 720,
-      "compression": 50
+      "quality": 70
     },
     {
       "folder": "resized/fhd",
       "width": 1920,
       "height": 1080,
-      "compression": 50
+      "quality": 80
     }
   ],
   "video": {
     "width": 1920,
     "height": 1080,
     "source": "resized/fhd",
-    "fps": 30
+    "fps": 30,
+    "frameLimit": 30
   }
 }

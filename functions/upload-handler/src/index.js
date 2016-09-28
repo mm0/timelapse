@@ -9,7 +9,7 @@ import getRawBody from 'raw-body';
 const gm = require('gm').subClass({ imageMagick: true });
 
 const FOREVER = '31536000'; // = 365 days, longest allowed max-age
-const DEFAULT_COMPRESSION = 0; // retain 100% quality by default
+const DEFAULT_QUALITY = 0; // retain 100% quality by default
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
 // The script will only index 5000 latest images.
@@ -226,7 +226,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
     // TODO: Do we check for the original image size? Only Shrink Larger Images ('>' flag)
     .resize(resize.width, resize.height, resize.ignoreAspectRatio && '!')
     // TODO: Specify an interpolation method to try a few different ones. Start with bicubic.
-    .quality(100 - (resize.compression || DEFAULT_COMPRESSION))
+    .quality(resize.quality || DEFAULT_QUALITY)
     .stream((err, stdout, stderr) => {
       if(err) {
         console.error('Error while resizing', resize, stderr);

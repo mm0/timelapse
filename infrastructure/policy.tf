@@ -59,6 +59,7 @@ resource "aws_iam_policy" "camera-policy" {
             ],
             "Resource": [
                 "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/full/*"
+                "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/log/*"
             ]
         }
     ]
