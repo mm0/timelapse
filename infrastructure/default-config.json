@@ -25,7 +25,7 @@
     "width": 1920,
     "height": 1080,
     "source": "resized/fhd",
-    "fps": 30,
+    "fps": 2,
     "frameLimit": 30
   }
 }
