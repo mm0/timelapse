@@ -11,6 +11,7 @@ const DEFAULT_FPS = 30;
 const DEFAULT_FRAME_LIMIT = 10;
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
+const lambda = new AWS.Lambda({apiVersion: '2015-03-31'});
 
 // A missing S3 object is not a reason to stop the show.
 function forgivingNoSuchKey(err) {
@@ -80,6 +81,7 @@ function getConfig(event) {
 async function processVideo(event) {
   // get config
   const config = await getConfig(event);
+  let imagesRemained = false;
 
   // get cam index
   console.log('Updating video', event, config);
@@ -102,6 +104,7 @@ async function processVideo(event) {
   if (images.length > frameLimit) {
     console.log('Many images to be processed', images.length, frameLimit);
     images.length = frameLimit;
+    imagesRemained = true;
   }
 
   // create a temp dir to store images to be added to video
@@ -165,6 +168,15 @@ async function processVideo(event) {
   }
 
   await Promise.all(clearItems);
+
+  if (imagesRemained) {
+    const res = await lambda.invoke({
+      FunctionName: process.env('LAMBDA_FUNCTION_NAME'),
+      InvocationType: 'Event',
+      Payload: new Buffer(JSON.stringify(event)),
+    }).promise();
+    console.log('self invoked again', res);
+  }
 
   return res;
 }
