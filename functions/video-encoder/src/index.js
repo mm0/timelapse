@@ -8,7 +8,7 @@ import AWS from 'aws-sdk';
 import ffmpeg from './ffmpegWrapper';
 
 const DEFAULT_FPS = 30;
-const FRAME_LIMIT = 10;
+const DEFAULT_FRAME_LIMIT = 10;
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
@@ -98,9 +98,10 @@ async function processVideo(event) {
   // putting new images in order
   const images = lastIndex ? allImages.splice(0, allImages.indexOf(lastIndex)).reverse() : allImages.reverse();
 
-  if (images.length > FRAME_LIMIT) {
-    console.log('Many images to be processed', images.length, FRAME_LIMIT);
-    images.length = FRAME_LIMIT;
+  const frameLimit = config.video.frameLimit || DEFAULT_FRAME_LIMIT;
+  if (images.length > frameLimit) {
+    console.log('Many images to be processed', images.length, frameLimit);
+    images.length = frameLimit;
   }
 
   // create a temp dir to store images to be added to video
