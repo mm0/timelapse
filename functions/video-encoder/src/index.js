@@ -171,7 +171,7 @@ async function processVideo(event) {
 
   if (imagesRemained) {
     const res = await lambda.invoke({
-      FunctionName: process.env('LAMBDA_FUNCTION_NAME'),
+      FunctionName: process.env['LAMBDA_FUNCTION_NAME'],
       InvocationType: 'Event',
       Payload: new Buffer(JSON.stringify(event)),
     }).promise();
