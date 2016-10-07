@@ -28,12 +28,12 @@ function parseJsonBody(data) {
 function getConfig(event) {
   return Promise.all([
     s3.getObject({
-      Bucket: event.bucket,
+      Bucket: event.bucket.name,
       Key: 'config.json',
     }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
     s3.getObject({
       Bucket: event.bucket,
-      Key: `${event.cam}/config.json`,
+      Key: `${event.image.cam}/config.json`,
     }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
   ])
   .then(configs => Object.assign({}, configs[0], configs[1]))
