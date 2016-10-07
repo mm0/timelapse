@@ -106,9 +106,9 @@ Images are resized to multiple smaller sizes as per this section of the config f
     {
       "exif-retain": ["Orientation", "DateTime", "DateTimeOriginal"],
       "resize": [
-        {"folder": "resized/fhd", "width": 1920, "height": 1080, "compression": 50}
-        {"folder": "resized/hd", "width": 1080, "height": 720, "compression": 50}
-        {"folder": "resized/small", "width": 500, "height": 500, "compression": 50}
+        {"folder": "resized/fhd", "width": 1920, "height": 1080, "quality": 50}
+        {"folder": "resized/hd", "width": 1080, "height": 720, "quality": 50}
+        {"folder": "resized/small", "width": 500, "height": 500, "quality": 50}
       ],
       "rotate": {"degrees": 45, color: "green"},
       "crop": {"top": 100, "left": 100,	"width": 300, "height": 300}
