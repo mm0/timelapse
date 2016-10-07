@@ -67,10 +67,6 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
         filter_prefix = "full/"
         filter_suffix = ".jpg"
     }
-}
-
-resource "aws_s3_bucket_notification" "bucket_delete_notification" {
-    bucket = "${aws_s3_bucket.storage_bucket.id}"
     lambda_function {
         lambda_function_arn = "${var.apex_function_delete-handler}"
         events = ["s3:ObjectRemoved:*"]
