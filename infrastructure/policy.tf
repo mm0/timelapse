@@ -6,6 +6,11 @@ resource "aws_iam_policy" "lambda-policy" {
   "Version": "2012-10-17",
   "Statement": [
     {
+      "Effect":"Allow",
+      "Action":"lambda:InvokeFunction",
+      "Resource":"${var.apex_function_video-encoder}*"
+    },
+    {
       "Effect": "Allow",
       "Action": [
         "s3:ListBucket"

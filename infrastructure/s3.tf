@@ -51,11 +51,29 @@ resource "aws_lambda_permission" "allow_bucket" {
     source_arn = "${aws_s3_bucket.storage_bucket.arn}"
 }
 
+resource "aws_lambda_permission" "allow_bucket_for_deletion" {
+    statement_id = "AllowExecutionFromS3BucketForDeletion_${aws_s3_bucket.storage_bucket.bucket}"
+    action = "lambda:InvokeFunction"
+    function_name = "${var.apex_function_delete-handler}"
+    principal = "s3.amazonaws.com"
+    source_arn = "${aws_s3_bucket.storage_bucket.arn}"
+}
+
 resource "aws_s3_bucket_notification" "bucket_notification" {
     bucket = "${aws_s3_bucket.storage_bucket.id}"
     lambda_function {
         lambda_function_arn = "${var.apex_function_upload-handler}"
         events = ["s3:ObjectCreated:*"]
+        filter_prefix = "full/"
+        filter_suffix = ".jpg"
+    }
+}
+
+resource "aws_s3_bucket_notification" "bucket_delete_notification" {
+    bucket = "${aws_s3_bucket.storage_bucket.id}"
+    lambda_function {
+        lambda_function_arn = "${var.apex_function_delete-handler}"
+        events = ["s3:ObjectRemoved:*"]
         filter_prefix = "full/"
         filter_suffix = ".jpg"
     }
