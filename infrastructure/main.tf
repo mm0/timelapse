@@ -5,6 +5,7 @@ variable "storage_bucket_name" {}
 variable "aws_region" {}
 variable "apex_function_role" {}
 variable "apex_function_upload-handler" {}
+variable "apex_function_delete-handler" {}
 variable "apex_function_video-encoder" {}
 
 provider "aws" {}
