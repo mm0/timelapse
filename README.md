@@ -110,6 +110,7 @@ Images are resized to multiple smaller sizes as per this section of the config f
         {"folder": "resized/hd", "width": 1080, "height": 720, "compression": 50}
         {"folder": "resized/small", "width": 500, "height": 500, "compression": 50}
       ],
+      "rotate": {"degrees": 45, color: "green"},
       "crop": {"top": 100, "left": 100,	"width": 300, "height": 300}
     }
 
@@ -117,6 +118,7 @@ Images are resized to multiple smaller sizes as per this section of the config f
 * **folder**: folder name for the resized image to be put in, relative to the camera root. It's just an object prefix in the context of S3.
 * **width**, **height**: the maximum size in pixels for the image. It may not be proportional to the image which has to fit into this bounding box without cropping.
 * **compression** - JPEG compression / quality level, 1 - 100, where 1 is the lowest and 100 is uncompressed.
+* **rotate** - rotates the canvas to the nearest quadrant fills it with *color* and rotate the image inside it
 * **crop** - describes the box that has to be cropped from the original image before resizing.
 
 When a new file is placed into the bucket the λ-function checks if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. Images are rotated to the set orientation and the exif orientation tag is removed for compatibility.

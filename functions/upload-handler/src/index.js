@@ -202,14 +202,22 @@ function clearExifAndAutoOrient(event, retain) {
   });
 }
 
-function cropImage(event, crop) {
-  console.log('Cropping image', crop);
+function cropAndRotateImage(event, crop, rotate) {
+  console.log('Cropping and rotating image', crop, rotate);
   return new Promise((resolve, reject) => {
     // TODO: investigate if it's possible to feed in-memory stream to GM
     // instead of saving intermediate files.
-    gm(event.tmpFile)
-    .crop(crop.width, crop.height, crop.left, crop.top)
-    .write(event.tmpFile, err => {
+    const res = gm(event.tmpFile);
+
+    if(rotate && rotate.degrees){
+      res.rotate(rotate.color || 'black', rotate.degrees)
+    }
+
+    if(crop){
+      res.crop(crop.width, crop.height, crop.left, crop.top)
+    }
+
+    res.write(event.tmpFile, err => {
       if (err) {
         console.error(err);
         return reject(new Error(`Error while cropping image: ${err}`));
@@ -287,8 +295,8 @@ function processImage(e) {
     return extractExif(event)
     .then(() => clearExifAndAutoOrient(event, config['exif-retain']))
     .then(() => {
-      if (config.crop) {
-        return cropImage(event, config.crop);
+      if (config.crop || config.rotate) {
+        return cropAndRotateImage(event, config.crop, config.rotate);
       }
       return true;
     })
