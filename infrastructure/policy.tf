@@ -27,7 +27,8 @@ resource "aws_iam_policy" "lambda-policy" {
     {
       "Effect": "Allow",
       "Action": [
-        "s3:PutObject"
+        "s3:PutObject",
+        "s3:DeleteObject"
       ],
       "Resource": [
         "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*resized*",
