@@ -32,11 +32,11 @@ function getConfig(event) {
       Key: 'config.json',
     }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
     s3.getObject({
-      Bucket: event.bucket,
+      Bucket: event.bucket.name,
       Key: `${event.image.cam}/config.json`,
     }).promise().catch(forgivingNoSuchKey).then(parseJsonBody),
   ])
-  .then(configs => Object.assign({}, configs[0], configs[1]))
+  .then(configs => ({...configs[0], ...configs[1]}))
   .catch(err => {
     console.error(err);
     throw new Error(`Error while reading configs: ${err}`);
