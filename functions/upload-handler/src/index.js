@@ -9,7 +9,7 @@ import getRawBody from 'raw-body';
 const gm = require('gm').subClass({ imageMagick: true });
 
 const FOREVER = '31536000'; // = 365 days, longest allowed max-age
-const DEFAULT_QUALITY = 0; // retain 100% quality by default
+const DEFAULT_QUALITY = 100; // retain 100% quality by default
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
 
 // The script will only index 5000 latest images.

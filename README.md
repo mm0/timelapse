@@ -118,12 +118,14 @@ Images are resized to multiple smaller sizes as per this section of the config f
 * **folder**: folder name for the resized image to be put in, relative to the camera root. It's just an object prefix in the context of S3.
 * **width**, **height**: the maximum size in pixels for the image. It may not be proportional to the image which has to fit into this bounding box without cropping.
 * **compression** - JPEG compression / quality level, 1 - 100, where 1 is the lowest and 100 is uncompressed.
-* **rotate** - rotates the canvas to the nearest quadrant fills it with *color* and rotate the image inside it
+* **rotate** - rotates the canvas to the nearest quadrant fills it with *color* ([Supported Colors](http://www.imagemagick.org/script/color.php)) and rotate the image inside it
 * **crop** - describes the box that has to be cropped from the original image before resizing.
 
 When a new file is placed into the bucket the λ-function checks if it's a valid jpeg file, parse the name, extract paths, read the config files, crop, resize and save the results. Images are rotated to the set orientation and the exif orientation tag is removed for compatibility.
 
-Please note that by default the upload-handler λ-function is configured with 512MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase it by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
+And also when a file is removed form the bucket another λ-function checks and removes all the resized versions as well.
+
+Please note that by default the upload-handler λ-function is configured with 1024MB RAM, but that might not be sufficient if you configure your cam to do multiple resizing, so you can easily increase it by editing https://github.com/hubsy-io/timelapse/blob/master/functions/upload-handler/function.json#L4 and redeploying the function.
 
 # Timelapse video
 

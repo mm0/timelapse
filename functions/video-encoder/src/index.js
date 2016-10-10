@@ -8,10 +8,10 @@ import AWS from 'aws-sdk';
 import ffmpeg from './ffmpegWrapper';
 
 const DEFAULT_FPS = 30;
-const DEFAULT_FRAME_LIMIT = 10;
+const DEFAULT_FRAME_LIMIT = 30;
 
 const s3 = new AWS.S3({ apiVersion: '2006-03-01' });
-const lambda = new AWS.Lambda({apiVersion: '2015-03-31'});
+const lambda = new AWS.Lambda({ apiVersion: '2015-03-31' });
 
 // A missing S3 object is not a reason to stop the show.
 function forgivingNoSuchKey(err) {
