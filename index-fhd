@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Timlapse Swiper slideshow demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+
+  <!-- Demo styles -->
+  <style>
+  html, body {
+    position: relative;
+    height: 100%;
+  }
+  body {
+    background: #000;
+    font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    color:#000;
+    margin: 0;
+    padding: 0;
+  }
+  .swiper-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+  .swiper-slide {
+    text-align: center;
+    font-size: 18px;
+    background: #000;
+
+  }
+  .swiper-slide img {
+    width: auto;
+    height: auto;
+    max-width: 100%;
+    max-height: 100%;
+    -ms-transform: translate(-50%, -50%);
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+  }
+
+  .swiper-slide .title {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: white;
+    background-color: rgba(0,0,0,.5);
+    padding: 20px;
+  }
+  </style>
+</head>
+<body>
+  <!-- Swiper -->
+  <div class="swiper-container">
+      <!-- Slides Placeholder -->
+      <div class="swiper-wrapper"></div>
+
+      <!-- Add Pagination -->
+      <div class="swiper-pagination swiper-pagination-white"></div>
+
+      <!-- Navigation -->
+      <div class="swiper-button-next swiper-button-white"></div>
+      <div class="swiper-button-prev swiper-button-white"></div>
+  </div>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ=" crossorigin="anonymous"></script>
+
+  <!-- Swiper JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/js/swiper.jquery.min.js"></script>
+
+  <!-- Swiper CSS -->
+  <script>
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.3.1/css/swiper.min.css';
+    document.head.appendChild(link);
+  </script>
+
+  <script>
+    $(function() {
+      // Loading arbitrary index file
+      $.get('https://s3.amazonaws.com/hubsy-timelapse-2/cam1/resized/fhd/idx/last100.txt', function(data) {
+        // Populating slides
+        $('.swiper-wrapper').html(data.split('\n').map(function(url){
+          // Extracting ISO date from URL
+          var iso = url.match(/([^\/]+)(?=\.\w+$)/)[0];
+          // Converting ISO date
+          var title = new Date(iso.slice(0,4) + '-' + iso.slice(4,6) + '-' + iso.slice(6,11) + ':' + iso.slice(11,13) + ':' + iso.slice(13));
+          return '<div class="swiper-slide"><img data-src="' + url +  '" class="swiper-lazy"><div class="title">' + title + '</div><div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div></div>'
+        }).join(''));
+
+        // Initializing swiper
+        var swiper = new Swiper('.swiper-container', {
+          nextButton: '.swiper-button-next',
+          prevButton: '.swiper-button-prev',
+          pagination: '.swiper-pagination',
+          paginationClickable: true,
+          // Disable preloading of all images
+          preloadImages: true,
+          // Enable lazy loading
+          lazyLoading: true,
+          effect: 'fade'
+        });
+      });
+    });
+  </script>
+</body>
+</html>
