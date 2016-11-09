@@ -92,7 +92,7 @@
           // Extracting ISO date from URL
           var iso = url.match(/([^\/]+)(?=\.\w+$)/)[0];
           // Converting ISO date
-          var title = "Hawkins Infrastructure - Pakenham St Upgrade, Wynard Qtr, Auckland"; //new Date(iso.slice(0,4) + '-' + iso.slice(4,6) + '-' + iso.slice(6,11) + ':' + iso.slice(11,13) + ':' + iso.slice(13));
+          var title = 'Hawkins Infrastructure - Pakenham St Upgrade, Wynard Qtr, Auckland'; //new Date(iso.slice(0,4) + '-' + iso.slice(4,6) + '-' + iso.slice(6,11) + ':' + iso.slice(11,13) + ':' + iso.slice(13));
           return '<div class="swiper-slide"><img data-src="' + url +  '" class="swiper-lazy"><div class="title">' + title + '</div><div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div></div>'
         }).join(''));
 
