@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Hasley St Upgrade - Hawkins Infrastructure</title>
+  <title>Halsey St Upgrade - Hawkins Infrastructure</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
   <!-- Demo styles -->
@@ -86,13 +86,13 @@
   <script>
     $(function() {
       // Loading arbitrary index file
-      $.get('https://s3.amazonaws.com/hubsy-timelapse-2/test2/resized/fhd/idx/last100.txt', function(data) {
+      $.get('https://s3.amazonaws.com/hubsy-timelapse-2/test3/resized/fhd/idx/last100.txt', function(data) {
         // Populating slides
         $('.swiper-wrapper').html(data.split('\n').map(function(url){
           // Extracting ISO date from URL
           var iso = url.match(/([^\/]+)(?=\.\w+$)/)[0];
           // Converting ISO date
-          var title = ""; //new Date(iso.slice(0,4) + '-' + iso.slice(4,6) + '-' + iso.slice(6,11) + ':' + iso.slice(11,13) + ':' + iso.slice(13));
+          var title = "Hawkins Infrastructure - Halsey St Upgrade, Wynard Qtr, Auckland"; //new Date(iso.slice(0,4) + '-' + iso.slice(4,6) + '-' + iso.slice(6,11) + ':' + iso.slice(11,13) + ':' + iso.slice(13));
           return '<div class="swiper-slide"><img data-src="' + url +  '" class="swiper-lazy"><div class="title">' + title + '</div><div class="swiper-lazy-preloader swiper-lazy-preloader-white"></div></div>'
         }).join(''));
 
