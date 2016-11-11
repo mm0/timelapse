@@ -86,7 +86,7 @@
   <script>
     $(function() {
       // Loading arbitrary index file
-      $.get('https://s3.amazonaws.com/hubsy-timelapse-2/test1/resized/fhd/idx/last100.txt', function(data) {
+      $.get('https://s3.amazonaws.com/hubsy-timelapse-2/test1/resized/fhd/idx/24hr.txt', function(data) {
         // Populating slides
         $('.swiper-wrapper').html(data.split('\n').map(function(url){
           // Extracting ISO date from URL
