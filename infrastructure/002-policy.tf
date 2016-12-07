@@ -73,3 +73,27 @@ resource "aws_iam_policy" "camera-policy" {
 POLICY
 
 }
+
+resource "aws_iam_instance_profile" "terraform_ec2_iam_instance_profile" {
+  name = "terraform_ec2_iam_instance_profile"
+  roles = ["${aws_iam_role.terraform_ec2_role.name}"]
+}
+
+resource "aws_iam_role" "terraform_ec2_role" {
+    name = "terraform_ec2_role"
+    assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "Service": "ec2.amazonaws.com"
+      },
+      "Effect": "Allow",
+      "Sid": ""
+    }
+  ]
+}
+EOF
+}
