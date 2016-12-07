@@ -1,0 +1,48 @@
+# 
+# example:  
+#
+#   ansible-playbook provision_server.yml --extra-vars "target=vagrant server_hostname=vagrant"
+#
+---
+- hosts: "{{ target }}"
+  gather_facts: true
+  become: yes
+  user: ubuntu
+  vars:
+  - document_root: /var/www
+  - the_group: ubuntu
+  - user: ubuntu
+  - extra_packages_to_install:  
+    - htop
+    - ffmpeg
+  - node_modules: [] #empty
+  vars_files:
+  - vault_files/users_list.yml
+  roles:
+  - { role: mm0.baseline, target: "{{ target }}", extra_packages: "{{ extra_packages_to_install }}" }
+  # create 'devs' group 
+  - { role: mm0.group,
+      the_groups: [ 
+        { name: "devs", state: "present"}
+      ]
+    }  
+#    - user
+  - mm0.sudo
+  - mm0.bash
+  - mm0.vimrc
+  # create env directory
+  - { role: mm0.touch,
+      owner: "{{ ansible_ssh_user }}",
+      group: "{{ ansible_ssh_user }}",
+      mode: "0644",
+      files: "/var/log/application.log"
+  }
+  - { role: mm0.ntp }
+  - { role: mm0.npm,
+      node_version: "4.x",
+      distro: trusty
+    }
+  post_tasks:
+  - name: npm install on web directory for node_modules
+    shell: chdir={{ document_root }} npm install
+    become: no
