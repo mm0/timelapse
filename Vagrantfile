@@ -10,7 +10,7 @@ server_timezone                  = "PST"
 hostname                         = "Timelapse"
 server_ip                        = "3.3.3.7"
 box                              = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-amd64-vagrant-disk1.box"
-web_directory                    = "/var/www"
+web_directory                    = "/var/timelapse"
 
 
 #
@@ -39,6 +39,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #config.ssh.private_key_path = private_key
   #config.vm.network :, ip: server_ip, adapter: "2"
   config.vm.network :private_network, ip: server_ip, adapter: 2, auto_config: true
+  # forward port for debugging node server
+  config.vm.network :forwarded_port, host: 5858, guest: 5858
+
 
   config.vm.synced_folder "./", web_directory, :owner=> 'vagrant', :group=>'vagrant', :mount_options => ['dmode=777','fmode=777']
 
@@ -79,7 +82,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.provision "ansible" do |ansible|
-    ansible.extra_vars      = { target: ansible_host, ansible_ssh_user: "vagrant", server_hostname: hostname,  extra_packages_to_install: [ ]  }
+    ansible.extra_vars      = { target: ansible_host, ansible_ssh_user: "vagrant", server_hostname: hostname,  extra_packages_to_install: [ 'htop' ], prod_deploy: false  }
     ansible.inventory_path  = ansible_inventory_file
     ansible.verbose         = "v"
     ansible.limit           = "all"

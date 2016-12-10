@@ -117,3 +117,5 @@ DerivedData/
 ansible/roles/*
 vendor
 composer.lock
+*compiled.js
+*.js.map

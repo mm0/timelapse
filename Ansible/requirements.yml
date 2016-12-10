@@ -7,3 +7,6 @@
 - src: mm0.bash
 - src: mm0.baseline
 - src: mm0.npm
+- src: mm0.awscli
+- src: hedii.ffmpeg
+- src: mm0.clone-and-upload-git-repository
