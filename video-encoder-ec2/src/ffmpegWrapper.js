@@ -85,8 +85,6 @@ async function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
 async function cleanup({fileList}) {
   return new Promise.all(fileList.map(async(fileName) => {
     console.log("Cleaning up (removing file)", fileName);
-    //testing
-    return true;
     return fs.unlink(fileName, function (err) {
       if (err) {
         console.log('Error removing file:', filename, err);
@@ -131,7 +129,7 @@ async function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution
 
             let concatListName = filename.toString().replace(/\s/g, '');
             // const concatListName = `/tmp/${uuidString()}.txt`;
-            console.log(concatListName);
+            console.log('Writing to file',concatListName);
             fileUnlinkList.push(concatListName);
 
             fs.writeFile(concatListName, concatList, async(concatErr) => {
