@@ -177,6 +177,7 @@ async function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution
                       const concatArgs = [
                         //'-v', '9',
                         //'-loglevel', '99',
+                        '-safe', '0', // allow unsafe (relative) file names in list
                         '-threads', '0', // optimal
                         '-f', 'concat',
                         '-i', concatListName,
