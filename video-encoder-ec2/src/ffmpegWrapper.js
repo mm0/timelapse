@@ -124,7 +124,7 @@ async function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution
          */
         const concatList = `file \'../${resizedExistingVideo}\'\r\nfile \'../${newFramesVideoName}\'\r\n`;
         console.log('Using concat list file with contents', concatList);
-        let fileUnlinkList = [concatListName, newFramesVideoName, resizedExistingVideo];
+        let fileUnlinkList = [newFramesVideoName, resizedExistingVideo];
 
         exec(`mktemp -t timelapse_hubsy_concat_list_XXXXXXX.txt`,
           (resizeErr, filename, StdErr) => {
