@@ -32,6 +32,12 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
 pip install ansible==2.1.1.0
 ```
      
+3b. install ansible dependencies
+
+```bash
+ansible-galaxy install -r ansible/requirements.yml -p ansible/roles
+```
+
 4. Install dependencies:
 ```bash
 npm install
