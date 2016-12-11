@@ -26,23 +26,29 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
   curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
   ```
 
-3. Install dependencies:
+3. Install Ansible 2.*
+
+```bash
+pip install ansible==2.1.1.0
+```
+     
+4. Install dependencies:
 ```bash
 npm install
 ```
-4. Set your AWS configuration and region. using `aws configure` cli command or:
+5. Set your AWS configuration and region. using `aws configure` cli command or:
 ```bash
 export AWS_ACCESS_KEY_ID=***
 export AWS_SECRET_ACCESS_KEY=***
 export AWS_REGION=us-east-1
 ```
 
-5. Set your desired s3 bucket name as env variable:
+6. Set your desired s3 bucket name as env variable:
 ```bash
 export TF_VAR_storage_bucket_name=my-hubsy-image-bucket-name
 ```
 
-6. Deploy functions and apply your infrastructure:
+7. Deploy functions and apply your infrastructure:
 ```bash
 apex init
 apex deploy
@@ -51,7 +57,21 @@ apex infra apply --var my_ip_address=9.9.9.9 --var ssh_public_key_file=~/.ssh/id
  # replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH
 ```
 
-7. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
+8. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
+
+### Local development
+
+1. Run `vagrant up`
+
+2. Log into local box using `vagrant ssh`
+
+3. run `aws configure` and enter AWS credentials when prompted
+
+4. `cd /vagrant/`
+
+5. build with `./node_modules/.bin/webpack --config webpack.ec2.config.js`
+
+6. run with `node lib/index.js`
 
 
 ### S3 storage
