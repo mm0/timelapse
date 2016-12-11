@@ -28,7 +28,7 @@ resource "aws_security_group" "timelapse" {
 }
 resource "aws_key_pair" "timelapse" {
     key_name = "timelapse"
-    public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDvfpIR5lQsOljdc72D2lE4nnPyRCA3HVcbI5rNUWJ6h5dDwtyJNGRKZWEsxxoz3V76m8J/M4RKdsFD2RO0ofOIhJ3WPgnx2YaeDcCUNknNXkCDW8JCnHFOdBcDykmr94/0BwUk8IVA+SSKoOMEvC9SW5ivpBItMga4NmGpggT4L4gfsh7WTRnPjJUPpbaDULpaBkLKhitnXlcXnx0PSEyAbM9vZonRGbcupomR41pRUGLZCDqwEqQri662+PH2JyriY9zWXINgR8DDvdzBtGPq30QITAJEsx8/78HvdJLEQ6p5tl03/Qt9S2Y/GHogwEuQB2u4ubQrAblkyai2o36B matt@mbp.local"
+    public_key = "${file(${var.ssh_public_key_file})}"
 }
 
 resource "aws_instance" "Timelapse" {

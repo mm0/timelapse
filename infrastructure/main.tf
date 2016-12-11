@@ -16,6 +16,9 @@ variable "aws_key_name" {
 variable "my_ip_address" {
 
 }
+variable "ssh_public_key_file" {
+
+}
 variable "instance_type" {
   default = "t2.micro"
 }

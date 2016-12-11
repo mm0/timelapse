@@ -66,7 +66,7 @@ async function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
             // NOTE(james): final command should be something like
 // ffmpeg -y -framerate FPS -i IMAGEDIR/%03d.png -c:v libx264 -r 30 -pix_fmt yuv420p out.mp4
             console.log('Creating video from frames...', args);
-            exec(['/usr/local/bin/ffmpeg', ...args].join(' '), (err, stdout, stderr) => {
+            exec(['ffmpeg', ...args].join(' '), (err, stdout, stderr) => {
               if (err) {
                 console.error('Error while running ffmpeg', err);
                 return reject(err);

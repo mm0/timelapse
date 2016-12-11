@@ -46,7 +46,9 @@ export TF_VAR_storage_bucket_name=my-hubsy-image-bucket-name
 ```bash
 apex init
 apex deploy
-apex infra apply --var my_ip_address=9.9.9.9 # replace with your IP address. this is used to open up SSH port for provisioning with ansible
+apex infra apply --var my_ip_address=9.9.9.9 --var ssh_public_key_file=~/.ssh/id_rsa.pub
+ # replace my_ip_address with your IP address. this is used to open up SSH port for provisioning with ansible
+ # replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH
 ```
 
 7. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
