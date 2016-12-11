@@ -32,12 +32,13 @@ function parseJsonBody(data) {
   return JSON.parse(data.Body.toString() || '{}');
 }
 
-function s3Upload(params) {
+async function s3Upload(params) {
   return new Promise((resolve, reject) => {
     s3.upload(params, (err, res) => {
       if (err) {
         console.error(err);
-        return reject(new Error(`Error while storing ${params.Key}: ${err}`));
+        //testing
+        //return reject(new Error(`Error while storing ${params.Key}: ${err}`));
       }
       return resolve(res);
     })
@@ -239,38 +240,40 @@ async function processVideo(event) {
 
     // TODO: test upload and cleanup
     console.log('Uploading new video and last index', newVideo);
+    //testing
+    return resolve();
     await
     Promise.all([
-      s3Upload({
+      await s3Upload({
         Bucket      : event.bucket,
         Key         : `${event.cam}/video.mp4`,
         Body        : fs.createReadStream(newVideo),
         CacheControl: 'no-cache',
         ContentType : 'video/mp4',
       }),
-      s3Upload({
+      await s3Upload({
         Bucket      : event.bucket,
         Key         : `${event.cam}/last-video-index.txt`,
         Body        : images[images.length - 1],
         CacheControl: 'no-cache',
         ContentType : 'text/text',
       }),
-    ].map(async(res) => true));
+    ]);
 
     // cleaning up
-    console.log('Clearing temp files');
-    const clearItems = [
-      fsp.unlink(newVideo),
-      rmfr(tmpDir),
-    ];
-
-    if (lastIndex) {
-      clearItems.push(fsp.unlink(`${tmpDir}/video.mp4`));
-    }
-
-    await
-    Promise.all(clearItems.map(async(res) => true));
-    resolve();
+    // console.log('Clearing temp files');
+    // const clearItems = [
+    //   fsp.unlink(newVideo),
+    //   rmfr(tmpDir),
+    // ];
+    //
+    // if (lastIndex) {
+    //   clearItems.push(fsp.unlink(`${tmpDir}/video.mp4`));
+    // }
+    //
+    // await
+    // Promise.all(clearItems.map(async(res) => true));
+    return resolve();
   });
 }
 

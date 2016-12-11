@@ -1,6 +1,6 @@
 resource "aws_iam_policy" "lambda-policy" {
     name = "timelapse_lambda_function_policy_${aws_s3_bucket.storage_bucket.bucket}"
-    description = "Policy to allow lamda to access s3"
+    description = "Policy to allow lamda and ec2 to access s3"
     policy = <<POLICY
 {
   "Version": "2012-10-17",
@@ -8,7 +8,7 @@ resource "aws_iam_policy" "lambda-policy" {
     {
       "Effect":"Allow",
       "Action":"lambda:InvokeFunction",
-      "Resource":"${var.apex_function_video-encoder}*"
+      "Resource":"${var.apex_function_video-handler}*"
     },
     {
       "Effect": "Allow",
@@ -44,7 +44,7 @@ POLICY
 
 }
 
-resource "aws_iam_role_policy_attachment" "lambda-policy-attach" {
+resource "aws_iam_role_policy_attachment" "lambda-policy-attach-2" {
   role = "${element(split("/", "${var.apex_function_role}"),1)}"
   policy_arn = "${aws_iam_policy.lambda-policy.arn}"
 }
@@ -79,6 +79,11 @@ resource "aws_iam_instance_profile" "terraform_ec2_iam_instance_profile" {
   roles = ["${aws_iam_role.terraform_ec2_role.name}"]
 }
 
+resource "aws_iam_role_policy_attachment" "lambda-policy-attach-ec2" {
+  role = "${aws_iam_role.terraform_ec2_role.name}"
+  policy_arn = "${aws_iam_policy.lambda-policy.arn}"
+}
+
 resource "aws_iam_role" "terraform_ec2_role" {
     name = "terraform_ec2_role"
     assume_role_policy = <<EOF
@@ -97,3 +102,4 @@ resource "aws_iam_role" "terraform_ec2_role" {
 }
 EOF
 }
+

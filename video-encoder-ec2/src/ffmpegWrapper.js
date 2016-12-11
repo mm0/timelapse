@@ -83,13 +83,15 @@ async function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
 }
 
 async function cleanup({fileList}) {
-  return new Promise.all(fileList.map(async(fileName) => {
+  return new Promise.all(fileList.map((fileName) => {
     console.log("Cleaning up (removing file)", fileName);
     return fs.unlink(fileName, function (err) {
       if (err) {
-        console.log('Error removing file:', filename, err);
+        console.log('Error removing file:', fileName, err);
+        return false;
       }
       console.log("File removed", fileName);
+      return true;
     });
   }));
 }
@@ -200,7 +202,7 @@ async function ffmpegAppendFrames(imageDirectory, fps, existingVideo, resolution
                         await cleanup({
                           fileList: fileUnlinkList
                         });
-                        console.error('Successfully appended video', err);
+                        console.log('Successfully appended video');
                         return resolve(true);//success
                       })
                     });
