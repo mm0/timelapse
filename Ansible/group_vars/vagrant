@@ -3,5 +3,5 @@
 users:
   vagrant:
     state: present 
-    groups:  sudo,vagrant,mysql
+    groups:  sudo,vagrant
     sudo: "ALL=(ALL) NOPASSWD: ALL"
