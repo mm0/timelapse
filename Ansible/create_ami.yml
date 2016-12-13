@@ -1,0 +1,22 @@
+# Pass in a region, instance_id and desired ami_name
+#
+# Example Creating AMI:
+#
+#   ansible-playbook create_ami.yml -e "region=us-east-1 instance_id=i-1234 ami_name='Latest Image'"
+#
+#
+---
+- hosts: local
+  vars:
+    - region: us-east-1
+  tasks:
+  - ec2_ami:
+      region: "{{ region }}"
+      instance_id: "{{ instance_id }}"
+      wait: yes
+      wait_timeout: 2400
+      name: "{{ ami_name }}"
+    register: instance
+
+  - debug: var=instance
+

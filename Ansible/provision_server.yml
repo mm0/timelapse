@@ -1,0 +1,63 @@
+# 
+# example:  
+#
+#   ansible-playbook provision_server.yml --extra-vars "target=vagrant server_hostname=vagrant"
+#
+---
+- hosts: "{{ target }}"
+  gather_facts: true
+  become: yes
+  user: ubuntu
+  vars:
+  - document_root: /var/timelapse
+  - the_group: ubuntu
+  - user: ubuntu
+  - extra_packages_to_install:  
+    - htop
+    - ffmpeg
+  - node_modules: [] #empty
+  - prod_deploy: true
+  vars_files:
+  - vault_files/users_list.yml
+  roles:
+  - { role: mm0.baseline, target: "{{ target }}", extra_packages: "{{ extra_packages_to_install }}" }
+  # create 'devs' group 
+  - { role: mm0.group,
+      the_groups: [ 
+        { name: "devs", state: "present"}
+      ]
+    }  
+#    - user
+  - mm0.sudo
+  - mm0.bash
+  - mm0.vimrc
+  - { role: mm0.ntp }
+  - { role: mm0.npm,
+      node_version: "4.x",
+      distro: trusty
+    }
+  - { role: mm0.awscli }
+  - { role: hedii.ffmpeg }
+  - { role: mm0.clone-and-upload-git-repository, 
+      git_site: github.com,
+      organization: hubsy-io,
+      repo: "timelapse", 
+      destination: "{{ document_root }}",
+      save_old: no,
+      owner: "{{ user }}",
+      group: "{{ the_group }}",
+      mode: "0755",
+      when: "{{ prod_deploy | bool }}"
+   }
+  post_tasks:
+  - name: npm install on web directory for node_modules
+    shell: chdir={{ document_root }} npm install
+    become: no
+
+  - name: Compile lambda + ec2
+    shell: chdir={{ document_root }} ./node_modules/.bin/webpack --config {{ item }}
+    become: no
+    with_items: 
+    - webpack.config.js
+    - webpack.ec2.config.js
+      
