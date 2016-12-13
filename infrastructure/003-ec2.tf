@@ -28,7 +28,7 @@ resource "aws_security_group" "timelapse" {
 }
 resource "aws_key_pair" "timelapse" {
     key_name = "timelapse"
-    public_key = "${file(${var.ssh_public_key_file})}"
+    public_key = "${file(var.ssh_public_key_file)}"
 }
 
 resource "aws_instance" "Timelapse" {
