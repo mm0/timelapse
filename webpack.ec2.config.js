@@ -9,7 +9,7 @@ module.exports = {
     libraryTarget: 'commonjs2'
   },
   // for debug
-  devtool: 'inline-source-map',
+  // devtool: 'inline-source-map',
   externals: {
     // aws-sdk does not (currently) build correctly with webpack. However,
     // Lambda includes it in its environment, so omit it from the bundle.
