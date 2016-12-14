@@ -63,7 +63,17 @@ apex infra apply --var my_ip_address=9.9.9.9 --var ssh_public_key_file=~/.ssh/id
  # replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH
 ```
 
-8. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
+This will add the IP address of your new instance to an inventory file
+
+8.  You will now be able to provision the server using ansible:
+
+```bash
+
+ansible-playbook -i ansible/hosts/aws ansible/provision_server.yml --private-key /path/to/.ssh/id_rsa -e "prod_deploy=true"
+
+```
+
+9. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
 
 ### Local development
 
