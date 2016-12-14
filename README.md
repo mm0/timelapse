@@ -35,11 +35,13 @@ pip install ansible==2.1.1.0
 3b. install ansible dependencies
 
 ```bash
-ansible-galaxy install -r ansible/requirements.yml -p ansible/roles
+ansible-galaxy install -r Ansible/requirements.yml -p ansible/roles
 ```
 
 4. Install dependencies:
 ```bash
+sudo apt-get update
+sudo apt-get install nodejs
 npm install
 ```
 5. Set your AWS configuration and region. using `aws configure` cli command or:
