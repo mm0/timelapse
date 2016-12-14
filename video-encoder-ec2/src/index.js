@@ -112,8 +112,8 @@ function getConfig(event) {
 async function processVideo(event) {
   return new Promise(async(resolve, reject) => {
     // get config
-    const config = await
-    getConfig(event);
+    const config     = await
+      getConfig(event);
     const frameLimit = config.video.frameLimit || DEFAULT_FRAME_LIMIT;
 
     let imagesRemained = true;
@@ -123,39 +123,39 @@ async function processVideo(event) {
     // fetch entire images database
     console.log('Checking if index exists');
     let doesIndexFileExist = await
-    doesKeyExist({
-      bucket: event.bucket,
-      key   : `${event.cam}/index.txt`
-    });
+      doesKeyExist({
+        bucket: event.bucket,
+        key   : `${event.cam}/index.txt`
+      });
     if (!doesIndexFileExist) {
       console.log("Index not found");
       throw new Error('Unable to find index file for', event.bucket, event.cam);
     }
     console.log("Index found");
     let allImages = (await
-    getObjectContent({
-      bucket: event.bucket,
-      key   : `${event.cam}/index.txt`
-    })
+        getObjectContent({
+          bucket: event.bucket,
+          key   : `${event.cam}/index.txt`
+        })
     ).
-    split('\n');
+      split('\n');
 
     console.log('All Images', allImages);
 
     // fetch last image index
     console.log('Checking if last index exists');
     let doesLastIndexFileExist = await
-    doesKeyExist({
-      bucket: event.bucket,
-      key   : `${event.cam}/last-video-index.txt`
-    });
-    if (doesLastIndexFileExist) {
-      console.log('Getting last index');
-      var lastIndex = await
-      getObjectContent({
+      doesKeyExist({
         bucket: event.bucket,
         key   : `${event.cam}/last-video-index.txt`
       });
+    if (doesLastIndexFileExist) {
+      console.log('Getting last index');
+      var lastIndex = await
+        getObjectContent({
+          bucket: event.bucket,
+          key   : `${event.cam}/last-video-index.txt`
+        });
       console.log('Last index', lastIndex);
     } else {
       var lastIndex = false;
@@ -166,18 +166,18 @@ async function processVideo(event) {
     let imagesThatExist = [];
     console.log('Removing missing images from array');
     await
-    Promise.all(allImages.map(async(image, i) => {
+      Promise.all(allImages.map(async(image, i) => {
 
-      let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
+        let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
 
-      let exists = await doesKeyExist({
-        bucket: event.bucket,
-        key   : image_key
-      });
-      if (exists) {
-        imagesThatExist.push(image);
-      }
-    }));
+        let exists = await doesKeyExist({
+          bucket: event.bucket,
+          key   : image_key
+        });
+        if (exists) {
+          imagesThatExist.push(image);
+        }
+      }));
     console.log('Images that exist', imagesThatExist);
     // putting new images in order since async pushed to array
     imagesThatExist.sort();
@@ -189,7 +189,7 @@ async function processVideo(event) {
     }
     // testing
     // imagesThatExist.splice(0,imagesThatExist.length-30);
-    imagesThatExist.reverse();
+    // imagesThatExist.reverse();
     console.log("Using sorted images", imagesThatExist);
 
     // create a temp dir to store images to be added to video
@@ -203,16 +203,16 @@ async function processVideo(event) {
     console.log('Downloading new images', imagesThatExist.length);
     console.log('Config is', config);
     await
-    Promise.all(imagesThatExist.map(async(image, i) => {
-        let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
-        console.log('Image key', image_key);
-        await downloadObject({
-          bucket: event.bucket,
-          key   : image_key,
-          dest  : `${tmpDir}/${zp(i, 3)}.jpg`
-        });
-      }
-    ));
+      Promise.all(imagesThatExist.map(async(image, i) => {
+          let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
+          console.log('Image key', image_key);
+          await downloadObject({
+            bucket: event.bucket,
+            key   : image_key,
+            dest  : `${tmpDir}/${zp(i, 3)}.jpg`
+          });
+        }
+      ));
 
     console.log("Finished Downloading Images");
 
@@ -220,45 +220,45 @@ async function processVideo(event) {
       console.log('Using existing video', lastIndex);
       var prevVideo = `${tmpDir}/video.mp4`;
       await
-      downloadObject({
-        bucket: event.bucket,
-        key   : `${event.cam}/video.mp4`,
-        dest  : prevVideo,
-      });
+        downloadObject({
+          bucket: event.bucket,
+          key   : `${event.cam}/video.mp4`,
+          dest  : prevVideo,
+        });
     } else {
       console.log('Creating new video file');
       var prevVideo = false;
 
     }
     const newVideo = await
-    ffmpeg.convert(
-      tmpDir,
-      event.fps || config.video.fps || DEFAULT_FPS,
-      prevVideo,
-      config.video.width ? [config.video.width, config.video.height] : null,
-    );
+      ffmpeg.convert(
+        tmpDir,
+        event.fps || config.video.fps || DEFAULT_FPS,
+        prevVideo,
+        config.video.width ? [config.video.width, config.video.height] : null,
+      );
 
     // TODO: test upload and cleanup
     console.log('Uploading new video and last index', newVideo);
     //testing
     return resolve();
     await
-    Promise.all([
-      await s3Upload({
-        Bucket      : event.bucket,
-        Key         : `${event.cam}/video.mp4`,
-        Body        : fs.createReadStream(newVideo),
-        CacheControl: 'no-cache',
-        ContentType : 'video/mp4',
-      }),
-      await s3Upload({
-        Bucket      : event.bucket,
-        Key         : `${event.cam}/last-video-index.txt`,
-        Body        : images[images.length - 1],
-        CacheControl: 'no-cache',
-        ContentType : 'text/text',
-      }),
-    ]);
+      Promise.all([
+        await s3Upload({
+          Bucket      : event.bucket,
+          Key         : `${event.cam}/video.mp4`,
+          Body        : fs.createReadStream(newVideo),
+          CacheControl: 'no-cache',
+          ContentType : 'video/mp4',
+        }),
+        await s3Upload({
+          Bucket      : event.bucket,
+          Key         : `${event.cam}/last-video-index.txt`,
+          Body        : images[images.length - 1],
+          CacheControl: 'no-cache',
+          ContentType : 'text/text',
+        }),
+      ]);
 
     // cleaning up
     // console.log('Clearing temp files');
@@ -277,14 +277,21 @@ async function processVideo(event) {
   });
 }
 
-async function main(){
+async function main() {
   // Entry point
-  let event = {
-    bucket: "hubsy-timelapse-2",
-    cam   : "cam6mb"
-  };
-  console.time('processVideo');
-  let func = await processVideo(event);
-  console.timeEnd('processVideo');
+  let cams     = ['test1', 'test2', 'test3'];
+  const bucket = 'hubsy-timelapse-2';
+  await
+    Promise.all(cams.map(async(cam) => {
+    let event = {
+      bucket: bucket,
+      cam   : cam,
+      fps   : 6 // 6x
+    };
+    console.time('processVideo');
+    let func = await
+    processVideo(event);
+    console.timeEnd('processVideo');
+  }));
 }
 main();

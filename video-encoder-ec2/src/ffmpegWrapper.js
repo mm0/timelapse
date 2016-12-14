@@ -17,16 +17,16 @@ async function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
         console.error(`couldn't read directory." ${err}`);
         return reject();
       } else {
-        if (fps > 30) {
-          console.log('fps too high, it must be less than or equal to 30');
-          return reject();
-        }
+        // if (fps > 30) {
+        //   console.log('fps too high, it must be less than or equal to 30');
+        //   return reject();
+        // }
 
         if (fileNames.length > 0) {
-          if (fileNames.length > 999) {
-            console.log('Too many images in directory! Must be less than 1000');
-            return reject();
-          }
+          // if (fileNames.length > 999) {
+          //   console.log('Too many images in directory! Must be less than 1000');
+          //   return reject();
+          // }
         } else {
           return reject(new Error('No images to append to video.'));
         }
@@ -48,7 +48,8 @@ async function ffmpegCreateVideoFromFrames(imageDirectory, fps, resolution) {
             if (!resolution) {
               resolution = [ffprobeInfo.streams[0].width, ffprobeInfo.streams[0].height];
             }
-            let resolutionArg = `scale=${resolution[0]}:${resolution[1]}`;
+            let resolutionArg = `"scale=${resolution[0]}:${resolution[1]}"`;
+            let frameRate = 120;
             const args        = [
               // '-v', '9',
               //'-loglevel', '99',
