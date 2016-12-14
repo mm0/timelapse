@@ -61,3 +61,8 @@
     - webpack.config.js
     - webpack.ec2.config.js
       
+  -	name: "Run job on boot"
+	  cron:
+			name: Run job on boot"
+			special_time: reboot
+			job: "nodejs {{document_root}}/lib/index.js" 
