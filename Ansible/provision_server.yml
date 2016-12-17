@@ -61,7 +61,7 @@
     - webpack.config.js
     - webpack.ec2.config.js
       
-  -	name: "Run job on boot"
+  - name: "Run job on boot"
     cron:
       name: Run job on boot"
       special_time: reboot
