@@ -35,7 +35,7 @@ pip install ansible==2.1.1.0
 3b. install ansible dependencies
 
 ```bash
-ansible-galaxy install -r Ansible/requirements.yml -p ansible/roles
+ansible-galaxy install -r Ansible/requirements.yml -p Ansible/roles
 ```
 
 4. Install dependencies:
