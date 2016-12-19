@@ -14,4 +14,4 @@ master_users_list:
     ubuntu:
       password: "$6$rounds=100000$CebZiji9zFhlqjL5$aGHM0NZfBGwFIaXSB0RInlKVvnEIZf5x6RU4aUKBv43EXTw0QOGebsjfhpNH20a6j5Zo9yXYtge3r83uaU3CX/"
       ssh_key:
-        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDQKEY8xDwhXu9HNVvV+XYarvmh9hl20cyMb3Or2cXUT4Zqk9BMethiPq+G3wbpz7sS8e4RVmvlbB1XiQ1BkoVNpyuYoy8AenhwJpayyT1T+Rxcppa7jhh98EHylRAwW+uuJ3dPpLMD4GN4t2ZYufpwsxkuvIjU3U+cLq/CNwDuOI4hqt3kajfTFlIRWU12P6JjmKh+rv2AXTnmfHc4XzkyV+OdhCZDZ+xRqFifkabsa7P0JLD5XReEnNWAQX6iE/p2AwQkNBuXq7YMNrADR6cfvL9euiL/glBD0Qtvqsm2KNUN/AQwPz7X9YH4DArIV2v3wexc9KqknLEUKWhmaFW/ Tradesy Ansible Newest"
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDN8PqBMADlnjqEqyNklFYU+/++BlHHg5vUoAOn+RsLzjddW+kXD5CcfzselWGzjQYA1RXQAI72/lkB3kG/jwpfF//8O8WVMSha6dDcFsJx13AL5dRp+djzKd5jZR7RcS9PwLyiS6zP3mVTJrsGtVqOtKaDur7wgFtDvGhxpYdb7wHHHeDU7c/wdCC1RzRzb7dRq9j7PzGM5NxqmaentvFgLXuJCwwEaxqRTFeNAppgwrPLSp4KR9UUeEyzsfyCzzMga64R5QHk/DKzd7bb0NK/vlFRzOa5Bs4/Oj0mA+OtcFxzKkKSR7uxXaAmRJaw/Iz1plTqaWcu2hYX33jkuli9"

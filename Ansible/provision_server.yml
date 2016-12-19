@@ -14,7 +14,6 @@
   - user: ubuntu
   - extra_packages_to_install:  
     - htop
-    - ffmpeg
   - node_modules: [] #empty
   - prod_deploy: true
   vars_files:
@@ -31,6 +30,12 @@
   - mm0.sudo
   - mm0.bash
   - mm0.vimrc
+  - { role: mm0.touch,
+      owner: "{{ ansible_ssh_user }}",
+      group: "{{ ansible_ssh_user }}",
+      mode: "0644",
+      files: "/var/log/application.log"
+  }
   - { role: mm0.ntp }
   - { role: mm0.npm,
       node_version: "4.x",
@@ -47,6 +52,7 @@
       owner: "{{ user }}",
       group: "{{ the_group }}",
       mode: "0755",
+      git_method: "HTTPS",
       when: "{{ prod_deploy | bool }}"
    }
   post_tasks:
@@ -65,4 +71,6 @@
     cron:
       name: Run job on boot"
       special_time: reboot
-      job: "nodejs {{document_root}}/lib/index.js"
+      job: "/usr/bin/nodejs {{document_root}}/lib/index.js >> /var/log/application.log 2>&1"
+      user: "{{ ansible_ssh_user }}"
+    become: no

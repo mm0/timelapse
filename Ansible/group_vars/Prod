@@ -1,0 +1,7 @@
+---
+# options for state are:  present, absent
+users:
+  ubuntu:
+    state: present 
+    groups:  sudo,ubuntu
+    sudo: "ALL=(ALL) NOPASSWD: ALL"

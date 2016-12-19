@@ -27,7 +27,7 @@ variable "aws_availability_zone" {
   description = "AZ within region"
   default = {
     us-west-1 = "us-west-1a"
-    us-east-1 = "us-east-1a"
+    us-east-1 = "us-east-1b"
   }
 }
 variable "amis" {
