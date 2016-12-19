@@ -29,6 +29,7 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
 3. Install Ansible 2.*
 
 ```bash
+sudo pip --upgrade install pip
 pip install ansible==2.1.1.0
 ```
      

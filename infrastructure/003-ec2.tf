@@ -52,7 +52,7 @@ resource "aws_eip" "timelapse_server" {
     instance = "${aws_instance.Timelapse.id}"
     vpc = true
     provisioner "local-exec" {
-        command = "echo \"[Prod]\n$(aws_eip.timelapse_server)\n\" >> ../Ansible/hosts/aws"
+        command = "echo '[Prod]\n${aws_eip.timelapse_server.public_ip}\n' > ../Ansible/hosts/aws"
     }
 }
 resource "aws_iam_role" "lambda-ec2-role" {
@@ -97,7 +97,7 @@ resource "aws_iam_policy" "lambda-ec2-policy" {
         "ec2:Start*",
         "ec2:Stop*"
       ],
-      "Resource": "arn:aws:${var.aws_region}::instance/${aws_instance.Timelapse.id}"
+      "Resource": "arn:aws:ec2:${var.aws_region}::instance/${aws_instance.Timelapse.id}"
     }
   ]
 }
