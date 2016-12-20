@@ -88,7 +88,7 @@ ansible-playbook -i ansible/hosts/aws ansible/provision_server.yml --private-key
 
 4. `cd /vagrant/`
 
-5. build with `./node_modules/.bin/webpack --config webpack.ec2.config.js`
+5. build with `./node_modules/.bin/webpack --config webpack.ec2.config.js` (win: `node_modules\.bin\webpack.cmd --config webpack.ec2.config.js`)
 
 6. run with `node lib/index.js`
 
