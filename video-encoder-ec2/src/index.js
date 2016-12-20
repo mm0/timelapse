@@ -241,7 +241,6 @@ async function processVideo(event) {
     // TODO: test upload and cleanup
     console.log('Uploading new video and last index', newVideo);
     //testing
-    return resolve();
     await
       Promise.all([
         await s3Upload({
