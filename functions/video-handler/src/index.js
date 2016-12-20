@@ -1,28 +1,37 @@
 import λ from 'apex.js';
 import AWS from 'aws-sdk';
 
-async function handleEC2Action(action, instance_ids) {
+function handleEC2Action(action) {
+  // read instance id from env
+  var instance_id = process.env.instance_id
 
   var ec2 = new AWS.EC2({
-    apiVersion: '2016-11-15',
+    apiVersion: 'latest',
     region    : "us-east-1"
   });
 
+  console.log(ec2);
+
   switch (action) {
     case "start":
-      await ec2.startInstance({
-        InstanceIds: instance_ids
-      });
+      var request = ec2.startInstances({
+        "InstanceIds": [ instance_id ]
+      },function(err,data){
+        console.log(err);
+        console.log(data)});
       break;
     case "stop":
-      await ec2.stopInstance({
-        InstanceIds: instance_ids
-      });
+      request = ec2.stopInstances({
+        "InstanceIds": [ instance_id ]
+      },function(err,data){
+        console.log(err);
+        console.log(data)});
       break;
   }
+
+  console.log(request);
 
 }
 
 // Lambda function entry point
-export default λ(event => handleEC2Action(event.action, event.instance_ids));
-
+export default λ(event => handleEC2Action(event.action));

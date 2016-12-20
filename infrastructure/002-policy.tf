@@ -1,7 +1,7 @@
 resource "aws_iam_policy" "lambda-policy" {
-    name = "timelapse_lambda_function_policy_${aws_s3_bucket.storage_bucket.bucket}"
-    description = "Policy to allow lamda and ec2 to access s3"
-    policy = <<POLICY
+  name = "timelapse_lambda_function_policy_${aws_s3_bucket.storage_bucket.bucket}"
+  description = "Policy to allow lamda and ec2 to access s3"
+  policy = <<POLICY
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -37,6 +37,36 @@ resource "aws_iam_policy" "lambda-policy" {
         "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*last-video-index.txt",
         "arn:aws:s3:::${aws_s3_bucket.storage_bucket.bucket}/*video.mp4"
       ]
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogGroup",
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:*:*:*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Describe*"
+      ],
+      "Resource": "*"
+        },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:Start*",
+        "ec2:Stop*"
+      ],
+      "Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/*",
+        "Condition": {
+        "StringEquals": {
+          "ec2:InstanceProfile":
+            "arn:aws:iam::${data.aws_caller_identity.current.account_id}:instance-profile/${var.aws_ec2_instance_profile_name}"
+        }
+      }
     }
   ]
 }
@@ -50,9 +80,9 @@ resource "aws_iam_role_policy_attachment" "lambda-policy-attach-2" {
 }
 
 resource "aws_iam_policy" "camera-policy" {
-    name = "timelapse_camera_policy_${aws_s3_bucket.storage_bucket.bucket}"
-    description = "Policy to allow cameras to access s3"
-    policy = <<POLICY
+  name = "timelapse_camera_policy_${aws_s3_bucket.storage_bucket.bucket}"
+  description = "Policy to allow cameras to access s3"
+  policy = <<POLICY
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -76,7 +106,8 @@ POLICY
 
 resource "aws_iam_instance_profile" "terraform_ec2_iam_instance_profile" {
   name = "terraform_ec2_iam_instance_profile"
-  roles = ["${aws_iam_role.terraform_ec2_role.name}"]
+  roles = [
+    "${aws_iam_role.terraform_ec2_role.name}"]
 }
 
 resource "aws_iam_role_policy_attachment" "lambda-policy-attach-ec2" {
@@ -85,8 +116,8 @@ resource "aws_iam_role_policy_attachment" "lambda-policy-attach-ec2" {
 }
 
 resource "aws_iam_role" "terraform_ec2_role" {
-    name = "terraform_ec2_role"
-    assume_role_policy = <<EOF
+  name = "terraform_ec2_role"
+  assume_role_policy = <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [

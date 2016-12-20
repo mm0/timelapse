@@ -62,3 +62,4 @@ variable "aws_ec2_instance_profile_name" {
 provider "aws" {
   profile = "timelapse"
 }
+data "aws_caller_identity" "current" {}
