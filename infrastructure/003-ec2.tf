@@ -77,39 +77,3 @@ resource "aws_iam_role" "lambda-ec2-role" {
 EOF
 }
 
-# create policy for lambda to start stop instance
-resource "aws_iam_policy" "lambda-ec2-policy" {
-    name = "timelapse_lambda_function_policy_ec2"
-    description = "Policy to allow lamda to start-stop ec2 isntance"
-    policy = <<POLICY
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents"
-      ],
-      "Resource": "arn:aws:logs:*:*:*"
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "ec2:Start*",
-        "ec2:Stop*"
-      ],
-      "Resource": "arn:aws:ec2:${var.aws_region}::instance/${aws_instance.Timelapse.id}"
-    }
-  ]
-}
-POLICY
-
-}
-
-resource "aws_iam_role_policy_attachment" "lambda-policy-attach" {
-  role = "${aws_iam_role.lambda-ec2-role.name}"
-  policy_arn = "${aws_iam_policy.lambda-ec2-policy.arn}"
-}
-
