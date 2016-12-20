@@ -6,25 +6,18 @@ var ec2 = new AWS.EC2({
   region    : "us-east-1"
 });
 
-function deleteImage(event, resize) {
-  return s3.deleteObject({
-    Bucket: event.bucket.name,
-    Key   : `${event.image.cam}/${resize.folder}/${event.image.name}.jpg`,
-  }).promise();
-}
 
-async function handleEC2Action(e) {
-  let instances = ['X-XXXXXXXX']
+async function handleEC2Action(action, instance_ids) {
 
-  switch (e.action) {
+  switch (action) {
     case "start":
       await ec2.startInstance({
-        InstanceIds: instances
+        InstanceIds: instance_ids
       });
       break;
     case "stop":
       await ec2.stopInstance({
-        InstanceIds: instances
+        InstanceIds: instance_ids
       });
       break;
   }
@@ -32,5 +25,5 @@ async function handleEC2Action(e) {
 }
 
 // Lambda function entry point
-export default λ(event => Promise.all(event.Records.map(req => handleEC2Action(req))));
+export default λ(event => handleEC2Action(event.Records[0].action, event.Records[0].instance_id));
 

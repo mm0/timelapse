@@ -73,10 +73,4 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
         filter_prefix = "full/"
         filter_suffix = ".jpg"
     }
-//    lambda_function {
-//      lambda_function_arn = "${var.apex_function_video-handler}"
-////      events = ["s3:ObjectRemoved:*"]
-////      filter_prefix = "full/"
-////      filter_suffix = ".jpg"
-//    }
 }

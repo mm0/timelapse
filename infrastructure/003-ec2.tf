@@ -54,6 +54,9 @@ resource "aws_eip" "timelapse_server" {
     provisioner "local-exec" {
         command = "echo '[Prod]\n${aws_eip.timelapse_server.public_ip}\n' > ../Ansible/hosts/aws"
     }
+    provisioner "local-exec" {
+        command = "apex deploy -s 'instance_id=${aws_instance.Timelapse.id}' ${var.apex_function_video-handler}"
+    }
 }
 resource "aws_iam_role" "lambda-ec2-role" {
   name = "lambda-ec2-role"
