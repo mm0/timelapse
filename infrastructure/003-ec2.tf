@@ -72,6 +72,6 @@ EOF
 }
 resource "null_resource" "ansible_inventory_hosts" {
     provisioner "local-exec" {
-        command = "cd ../ && apex deploy -s 'instance_id=${aws_instance.Timelapse.id}' 'video-handler}'"
+        command = "cd ../ && apex deploy -s 'instance_id=${aws_instance.Timelapse.id}' 'video-handler'"
     }
 }
