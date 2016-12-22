@@ -14,6 +14,7 @@
   - user: ubuntu
   - extra_packages_to_install:  
     - htop
+    - jq
   - node_modules: [] #empty
   - prod_deploy: true
   vars_files:
