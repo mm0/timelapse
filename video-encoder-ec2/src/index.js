@@ -276,6 +276,13 @@ async function processVideo(event) {
   });
 }
 
+function delay(ms) {
+  return new Promise(function (resolve, reject) {
+    setTimeout(resolve, ms); // (A)
+  });
+}
+
+
 async function main() {
   // Entry point
   let cams     = ['test1', 'test2', 'test3'];
@@ -292,5 +299,28 @@ async function main() {
     processVideo(event);
     console.timeEnd('processVideo');
   }));
+
+  // Using delay():
+  delay(300000).then(function () { // (B)
+    console.log('300 seconds have passed!');
+
+    var params = {
+      FunctionName: 'Timelapse_video-handler', /* required */
+      InvocationType: 'RequestResponse',
+      LogType: 'Tail',
+      Payload: '{"action": "stop"}'
+    };
+    var lambda = new AWS.Lambda({
+      apiVersion: 'latest',
+      region    : "us-east-1"
+    });
+
+    lambda.invoke(params, function(err, data) {
+      if (err) console.log(err, err.stack); // an error occurred
+      else     console.log(data);           // successful response
+    });
+
+  });
+
 }
 main();

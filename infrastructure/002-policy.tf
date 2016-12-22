@@ -58,7 +58,8 @@ resource "aws_iam_policy" "lambda-policy" {
       "Effect": "Allow",
       "Action": [
         "ec2:Start*",
-        "ec2:Stop*"
+        "ec2:Stop*",
+        "lambda:InvokeFunction"
       ],
       "Resource": "arn:aws:ec2:${var.aws_region}:${data.aws_caller_identity.current.account_id}:instance/*",
         "Condition": {

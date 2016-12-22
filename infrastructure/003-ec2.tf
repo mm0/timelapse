@@ -1,6 +1,3 @@
-/*
-  Web Servers
-*/
 resource "aws_security_group" "timelapse" {
     name = "vpc_timelapse"
     description = "Allow incoming HTTP connections."
@@ -52,10 +49,7 @@ resource "aws_eip" "timelapse_server" {
     instance = "${aws_instance.Timelapse.id}"
     vpc = true
     provisioner "local-exec" {
-        command = "echo '[Prod]\n${aws_eip.timelapse_server.public_ip}\n' > ../Ansible/hosts/aws"
-    }
-    provisioner "local-exec" {
-        command = "apex deploy -s 'instance_id=${aws_instance.Timelapse.id}' ${var.apex_function_video-handler}"
+        command = "echo '[Prod]\n${aws_eip.timelapse_server.public_ip} ansible_ssh_common_args='-o StrictHostKeyChecking=no'\n' > ../Ansible/hosts/aws"
     }
 }
 resource "aws_iam_role" "lambda-ec2-role" {
@@ -76,4 +70,8 @@ resource "aws_iam_role" "lambda-ec2-role" {
 }
 EOF
 }
-
+resource "null_resource" "ansible_inventory_hosts" {
+    provisioner "local-exec" {
+        command = "cd ../ && apex deploy -s 'instance_id=${aws_instance.Timelapse.id}' 'video-handler'"
+    }
+}
