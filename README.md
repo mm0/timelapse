@@ -15,10 +15,13 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
 
 # Image processing with a λ-function
 
-### Set up
-1. Install [Terraform](https://www.terraform.io/intro/getting-started/install.html).
+## Set up
 
-2. Install [Apex](http://apex.run).
+#### 1. Install [Terraform](https://www.terraform.io/intro/getting-started/install.html).
+It is needed to create policies, EC2 instances and other AWS infrastructure.
+
+#### 2. Install [Apex](http://apex.run).
+This is the overall 
 
   On macOS, Linux, or OpenBSD run the following:
 
@@ -26,57 +29,59 @@ This set of tools was developed for [Hubsy Cameras](http://hubsy.io). They are s
   curl https://raw.githubusercontent.com/apex/apex/master/install.sh | sh
   ```
 
-3. Install Ansible 2.*
+#### 3. Install Ansible 2.*
 
 ```bash
 sudo pip --upgrade install pip
 pip install ansible==2.1.1.0
 ```
      
-3b. install ansible dependencies
+#### 3b. install ansible dependencies
 
 ```bash
 ansible-galaxy install -r Ansible/requirements.yml -p Ansible/roles
 ```
 
-4. Install dependencies:
+#### 4. Install dependencies:
 ```bash
 sudo apt-get update
 sudo apt-get install nodejs
 npm install
 ```
-5. Set your AWS configuration and region. using `aws configure` cli command or:
+#### 5. Set your AWS configuration and region. using `aws configure` cli command or:
 ```bash
 export AWS_ACCESS_KEY_ID=***
 export AWS_SECRET_ACCESS_KEY=***
 export AWS_REGION=us-east-1
 ```
 
-6. Set your desired s3 bucket name as env variable:
+#### 6. Set the source S3 bucket name as env variable:
 ```bash
 export TF_VAR_storage_bucket_name=my-hubsy-image-bucket-name
 ```
 
-7. Deploy functions and apply your infrastructure:
+#### 7. Deploy functions and apply your infrastructure:
+
+Replace my_ip_address with the IP address of the control box. This is used to open up an SSH port for provisioning with Ansible.
+
+Replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH
+
 ```bash
 apex init
 apex deploy
 apex infra apply --var my_ip_address=9.9.9.9 --var ssh_public_key_file=~/.ssh/id_rsa.pub
- # replace my_ip_address with your IP address. this is used to open up SSH port for provisioning with ansible
- # replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH
 ```
 
-This will add the IP address of your new instance to an inventory file
+`apex infra apply` will add the IP address of the new instance it created to an inventory file.
 
-8.  You will now be able to provision the server using ansible:
+#### 8.  Provision the server using ansible:
 
 ```bash
-
-ansible-playbook -i ansible/hosts/aws ansible/provision_server.yml --private-key /path/to/.ssh/id_rsa -e "prod_deploy=true"
-
+cd Ansible
+ansible-playbook provision_server.yml -i hosts/ -e 'target=Prod' --user=ubuntu --private-key ~/.ssh/id_rsa
 ```
 
-9. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
+#### 9. Start uploading images to `[my-hubsy-image-bucket-name]/full/[cam-name]/`
 
 ### Local development
 
