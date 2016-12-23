@@ -92,7 +92,9 @@ export TF_VAR_storage_bucket_name=my-hubsy-image-bucket-name
 
 Replace my_ip_address with the IP address of the control box. This is used to open up an SSH port for provisioning with Ansible.
 
-Replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH
+Replace ssh_public_key_file with the public key you want to use for the keypair to access via SSH.
+
+Enter the project name during the init stage as `Timelapse` because this name is hardcoded in some functions.
 
 ```bash
 apex init
