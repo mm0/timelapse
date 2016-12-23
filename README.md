@@ -48,6 +48,34 @@ sudo apt-get update
 sudo apt-get install nodejs
 npm install
 ```
+
+#### 4.1 Compile Lambda functions on the control box
+
+Make sure the code is already on the control box:
+
+```bash
+mkdir ~/timelapse
+cd ~/timelapse
+git clone https://github.com/hubsy-io/timelapse.git
+```
+or
+```bash
+cd ~/timelapse
+git pull
+```
+
+Compile the code with webpack for every Lambda function:
+
+```bash
+#!/usr/bin/env bash
+cd functions/upload-handler/
+../../node_modules/.bin/webpack --config ../../webpack.config.js
+cd ../../functions/delete-handler/
+../../node_modules/.bin/webpack --config ../../webpack.config.js
+cd ../../functions/video-handler/
+../../node_modules/.bin/webpack --config ../../webpack.config.js
+```
+
 #### 5. Set your AWS configuration and region. using `aws configure` cli command or:
 ```bash
 export AWS_ACCESS_KEY_ID=***
