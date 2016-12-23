@@ -8,7 +8,7 @@ function parsePath(path) {
   const res = /^full\/(.*)\/(.*)\.jpg/.exec(path);
   return {
     cam: res[1],
-    name: res[2],
+    name: decodeURIComponent(res[2]),
   };
 }
 
@@ -51,7 +51,7 @@ function deleteImage(event, resize) {
 }
 
 async function handleDeletion(e) {
-  console.log(`Processing '${e.object.key}' deletion ...`);
+  console.log(`Processing '${decodeURIComponent(e.object.key)}' deletion ...`);
   const event = {
     ...e,
     image: parsePath(e.object.key),

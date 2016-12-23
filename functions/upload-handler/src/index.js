@@ -21,7 +21,7 @@ function parsePath(path) {
   const res = /^full\/(.*)\/(.*)\.jpg/.exec(path);
   return {
     cam: res[1],
-    name: res[2],
+    name: decodeURIComponent(res[2]),
   };
 }
 
@@ -275,7 +275,7 @@ function resizeImageAndUpdateIndex(event, resize, index) {
 
 // The top level function after the entry point
 function processImage(e) {
-  console.log(`Processing '${e.object.key}'...`);
+  console.log(`Processing '${decodeURIComponent(e.object.key)}'...`);
   const event = Object.assign({}, e, {
     image: parsePath(e.object.key),
     tmpFile: `/tmp/${uuid.v4()}`,
@@ -283,7 +283,7 @@ function processImage(e) {
   return new Promise((resolve, reject) => {
     const stream = s3.getObject({
       Bucket: event.bucket.name,
-      Key: event.object.key,
+      Key: decodeURIComponent(event.object.key),
     }).createReadStream().pipe(fs.createWriteStream(event.tmpFile));
 
     stream.on('finish', res => resolve(res));
