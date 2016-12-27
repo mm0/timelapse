@@ -108,6 +108,7 @@ apex infra apply --var my_ip_address=9.9.9.9 --var ssh_public_key_file=~/.ssh/id
 
 ```bash
 cd Ansible
+ansible-playbook -e 'host_key_checking=False' provision_server.yml
 ansible-playbook provision_server.yml -i hosts/ -e 'target=Prod' --user=ubuntu --private-key ~/.ssh/id_rsa
 ```
 

@@ -49,7 +49,7 @@ resource "aws_eip" "timelapse_server" {
     instance = "${aws_instance.Timelapse.id}"
     vpc = true
     provisioner "local-exec" {
-        command = "echo '[Prod]\n${aws_eip.timelapse_server.public_ip} ansible_ssh_common_args=\'-o StrictHostKeyChecking=no\'\n' > ../Ansible/hosts/aws"
+        command = "echo '[Prod]\n${aws_eip.timelapse_server.public_ip}\n' > ../Ansible/hosts/aws"
     }
 }
 resource "aws_iam_role" "lambda-ec2-role" {
