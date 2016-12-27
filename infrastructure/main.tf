@@ -20,7 +20,6 @@ variable "ssh_public_key_file" {
 
 }
 variable "instance_type" {
-  default = "m4.2xlarge"
 }
 
 variable "aws_availability_zone" {
