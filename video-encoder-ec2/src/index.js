@@ -40,6 +40,8 @@ async function s3Upload(params) {
         //testing
         //return reject(new Error(`Error while storing ${params.Key}: ${err}`));
       }
+      console.log("Uploaded",params);
+      console.log(res);
       return resolve(res);
     })
   })
@@ -296,31 +298,37 @@ async function main() {
     };
     console.time('processVideo');
     let func = await
-    processVideo(event);
-    console.timeEnd('processVideo');
+    processVideo(event).then(function() {
+      delay(300000).then(function () { // (B)
+        console.log('300 seconds have passed!');
+        execSync("sudo shutdown -h now")
+      });
+    });
+      console.log('Finished processing video');
+      console.timeEnd('processVideo');
   }));
 
   // Using delay():
-  delay(300000).then(function () { // (B)
-    console.log('300 seconds have passed!');
-
-    var params = {
-      FunctionName: 'Timelapse_video-handler', /* required */
-      InvocationType: 'RequestResponse',
-      LogType: 'Tail',
-      Payload: '{"action": "stop"}'
-    };
-    var lambda = new AWS.Lambda({
-      apiVersion: 'latest',
-      region    : "us-east-1"
-    });
-
-    lambda.invoke(params, function(err, data) {
-      if (err) console.log(err, err.stack); // an error occurred
-      else     console.log(data);           // successful response
-    });
-
-  });
+  // delay(300000).then(function () { // (B)
+  //   console.log('300 seconds have passed!');
+  //
+  //   var params = {
+  //     FunctionName: 'Timelapse_video-handler', /* required */
+  //     InvocationType: 'RequestResponse',
+  //     LogType: 'Tail',
+  //     Payload: '{"action": "stop"}'
+  //   };
+  //   var lambda = new AWS.Lambda({
+  //     apiVersion: 'latest',
+  //     region    : "us-east-1"
+  //   });
+  //
+  //   lambda.invoke(params, function(err, data) {
+  //     if (err) console.log(err, err.stack); // an error occurred
+  //     else     console.log(data);           // successful response
+  //   });
+  //
+  // });
 
 }
 main();
