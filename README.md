@@ -76,7 +76,7 @@ cd ../../functions/video-handler/
 ../../node_modules/.bin/webpack --config ../../webpack.config.js
 ```
 
-Compilation of the node.js function on the ec2 instance should be done with `../node_modules/.bin/webpack --config ../webpack.ec2.config.js`.
+Compilation of the node.js function on the ec2 instance should be done with `./node_modules/.bin/webpack --config ./webpack.ec2.config.js` from the app root directory.
 
 #### 5. Set your AWS configuration and region. using `aws configure` cli command or:
 ```bash
