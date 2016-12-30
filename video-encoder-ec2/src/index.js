@@ -41,7 +41,6 @@ async function s3Upload(params) {
         //return reject(new Error(`Error while storing ${params.Key}: ${err}`));
       }
       console.log("Uploaded",params);
-      console.log(res);
       return resolve(res);
     })
   })
@@ -139,8 +138,7 @@ async function processVideo(event) {
           bucket: event.bucket,
           key   : `${event.cam}/index.txt`
         })
-    ).
-      split('\n');
+    ).split('\n');
 
     console.log('All Images', allImages);
 
@@ -169,9 +167,7 @@ async function processVideo(event) {
     console.log('Removing missing images from array');
     await
       Promise.all(allImages.map(async(image, i) => {
-
         let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
-
         let exists = await doesKeyExist({
           bucket: event.bucket,
           key   : image_key
@@ -206,15 +202,14 @@ async function processVideo(event) {
     console.log('Config is', config);
     await
       Promise.all(imagesThatExist.map(async(image, i) => {
-          let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
-          console.log('Image key', image_key);
-          await downloadObject({
-            bucket: event.bucket,
-            key   : image_key,
-            dest  : `${tmpDir}/${zp(i, 3)}.jpg`
-          });
-        }
-      ));
+        let image_key = config.video.source ? `${event.cam}/${config.video.source}/${image}.jpg` : `full/${event.cam}/${image}.jpg`;
+        console.log('Image key', image_key);
+        await downloadObject({
+          bucket: event.bucket,
+          key   : image_key,
+          dest  : `${tmpDir}/${zp(i, 3)}.jpg`
+        });
+      }));
 
     console.log("Finished Downloading Images");
 
@@ -243,37 +238,23 @@ async function processVideo(event) {
     // TODO: test upload and cleanup
     console.log('Uploading new video and last index', newVideo);
     //testing
-    await
-      Promise.all([
-        await s3Upload({
-          Bucket      : event.bucket,
-          Key         : `${event.cam}/video.mp4`,
-          Body        : fs.createReadStream(newVideo),
-          CacheControl: 'no-cache',
-          ContentType : 'video/mp4',
-        }),
-        await s3Upload({
-          Bucket      : event.bucket,
-          Key         : `${event.cam}/last-video-index.txt`,
-          Body        : images[images.length - 1],
-          CacheControl: 'no-cache',
-          ContentType : 'text/text',
-        }),
-      ]);
-
-    // cleaning up
-    // console.log('Clearing temp files');
-    // const clearItems = [
-    //   fsp.unlink(newVideo),
-    //   rmfr(tmpDir),
-    // ];
-    //
-    // if (lastIndex) {
-    //   clearItems.push(fsp.unlink(`${tmpDir}/video.mp4`));
-    // }
-    //
-    // await
-    // Promise.all(clearItems.map(async(res) => true));
+    await Promise.all([
+      s3Upload({
+        Bucket      : event.bucket,
+        Key         : `${event.cam}/video.mp4`,
+        Body        : fs.createReadStream(newVideo),
+        CacheControl: 'no-cache',
+        ContentType : 'video/mp4',
+      }),
+      s3Upload({
+        Bucket      : event.bucket,
+        Key         : `${event.cam}/last-video-index.txt`,
+        Body        : images[images.length - 1],
+        CacheControl: 'no-cache',
+        ContentType : 'text/text',
+      })
+    ]);
+    console.log('done with this run');
     return resolve();
   });
 }
@@ -284,6 +265,27 @@ function delay(ms) {
   });
 }
 
+function shutDownWithLambda(){
+  var params = {
+    FunctionName  : 'Timelapse_video-handler', /* required */
+    InvocationType: 'RequestResponse',
+    LogType       : 'Tail',
+    Payload       : '{"action": "stop"}'
+  };
+  var lambda = new AWS.Lambda({
+    apiVersion: 'latest',
+    region    : "us-east-1"
+  });
+  
+  lambda.invoke(params, function (err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    else     console.log(data);           // successful response
+  });
+}
+
+function localShutdown(){
+    execSync("sudo shutdown -h now")
+}
 
 async function main() {
   // Entry point
@@ -291,44 +293,23 @@ async function main() {
   const bucket = 'hubsy-timelapse-2';
   await
     Promise.all(cams.map(async(cam) => {
-    let event = {
-      bucket: bucket,
-      cam   : cam,
-      fps   : 6 // 6x
-    };
-    console.time('processVideo');
-    let func = await
-    processVideo(event).then(function() {
-      delay(300000).then(function () { // (B)
-        console.log('300 seconds have passed!');
-        execSync("sudo shutdown -h now")
-      });
-    });
-      console.log('Finished processing video');
+      let event = {
+        bucket: bucket,
+        cam   : cam,
+        fps   : 6 // 6x
+      };
+      console.time('processVideo');
+      console.log(`Processing video for ${cam}`);
+      await processVideo(event);
+      console.log(`Finished processing video for ${cam}`);
       console.timeEnd('processVideo');
-  }));
-
-  // Using delay():
-  // delay(300000).then(function () { // (B)
-  //   console.log('300 seconds have passed!');
-  //
-  //   var params = {
-  //     FunctionName: 'Timelapse_video-handler', /* required */
-  //     InvocationType: 'RequestResponse',
-  //     LogType: 'Tail',
-  //     Payload: '{"action": "stop"}'
-  //   };
-  //   var lambda = new AWS.Lambda({
-  //     apiVersion: 'latest',
-  //     region    : "us-east-1"
-  //   });
-  //
-  //   lambda.invoke(params, function(err, data) {
-  //     if (err) console.log(err, err.stack); // an error occurred
-  //     else     console.log(data);           // successful response
-  //   });
-  //
-  // });
-
+    }));
+  console.log('Delaying 300 seconds before shutdown!');
+  delay(300000).then(function () {
+    console.log('300 seconds have passed!');
+    // shutDownWithLambda();
+    localShutdown();
+  });
+  
 }
 main();
