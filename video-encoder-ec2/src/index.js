@@ -291,19 +291,19 @@ async function main() {
   // Entry point
   let cams     = ['test1', 'test3', 'test4'];
   const bucket = 'hubsy-timelapse-2';
-  await
-    Promise.all(cams.map(async(cam) => {
-      let event = {
-        bucket: bucket,
-        cam   : cam,
-        fps   : 6 // 6x
-      };
-      console.time('processVideo');
-      console.log(`Processing video for ${cam}`);
-      await processVideo(event);
-      console.log(`Finished processing video for ${cam}`);
-      console.timeEnd('processVideo');
-    }));
+  var event = {}
+  for(var cam of cams){
+    event = {
+      bucket: bucket,
+      cam   : cam,
+      fps   : 6 // 6x
+    };
+    console.time('processVideo');
+    console.log(`Processing video for ${cam}`);
+    await processVideo(event);
+    console.log(`Finished processing video for ${cam}`);
+    console.timeEnd('processVideo');
+  }
   console.log('Delaying 300 seconds before shutdown!');
   delay(300000).then(function () {
     console.log('300 seconds have passed!');
