@@ -289,7 +289,7 @@ function localShutdown(){
 
 async function main() {
   // Entry point
-  let cams     = ['test1', 'test2', 'test3'];
+  let cams     = ['test1', 'test3', 'test4'];
   const bucket = 'hubsy-timelapse-2';
   await
     Promise.all(cams.map(async(cam) => {
