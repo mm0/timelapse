@@ -1,0 +1,1 @@
+sudo node_modules/.bin/webpack --config webpack.ec2.config.js
